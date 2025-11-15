@@ -1,34 +1,37 @@
 from PySide6 import QtWidgets
+import platformdirs
+import pathlib
+
 from hazbin_tracker.core.constants import (
     APPLICATION_TITLE,
     ORGANIZATION_NAME,
     HAZBIN_TRACKER_VERSION
 )
 
-
-class SystemTrayContextMenu(QtWidgets.QMenu):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.exit_action = self.addAction("Exit")
-        self.exit_action.triggered.connect(QtWidgets.QApplication.quit)
-
-
-class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
-    def __init__(self, icon, parent=None):
-        super().__init__(icon, parent)
-        self.setToolTip("Hazbin Tracker")
-        self.context_menu = SystemTrayContextMenu(parent)
-        self.setContextMenu(self.context_menu)
+from .tray import HazbinTrackerSystemTrayIcon
+from ..core.cards_tracker import CardsTracker
 
 
 class HazbinTrackerApplication(QtWidgets.QApplication):
+
     def __init__(self, argv):
         super().__init__(argv)
         self.setApplicationName(APPLICATION_TITLE)
         self.setOrganizationName(ORGANIZATION_NAME)
         self.setApplicationVersion(HAZBIN_TRACKER_VERSION)
 
+        self.cards_tracker = CardsTracker()
+
         self.tray_icon = HazbinTrackerSystemTrayIcon(
             self.style().standardIcon(QtWidgets.QStyle.SP_ComputerIcon)
         )
         self.tray_icon.show()
+
+    @property
+    def app_data_dir(self) -> pathlib.Path:
+        return pathlib.Path(platformdirs.user_data_dir(
+            appname=APPLICATION_TITLE,
+            appauthor=ORGANIZATION_NAME,
+            roaming=False,
+            ensure_exists=True
+        ))
