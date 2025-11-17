@@ -1,5 +1,9 @@
 SHELL := /bin/bash
-MAIN_FILE_PATH := ./src/nyx/main.py
+
+APP_NAME = HazbinTracker
+DIST_DIR = dist
+APP_PATH = $(DIST_DIR)/$(APP_NAME).app
+APPLICATIONS_DIR = /Applications
 
 
 clean:
@@ -44,3 +48,7 @@ iconset:
 	sips -z 1024 1024 resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_512x512@2x.png
 	iconutil -c icns resources/icons/HazbinTracker.iconset -o resources/icons/HazbinTracker.icns
 	rm -rf resources/icons/HazbinTracker.iconset
+
+.PHONY: install
+install:
+	cp -R "$(APP_PATH)" "$(APPLICATIONS_DIR)/"
