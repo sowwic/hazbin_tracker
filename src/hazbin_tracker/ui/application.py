@@ -46,6 +46,7 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
 
     def _setup_pushover(self):
         if not self.settings.pushover_enabled:
+            self.settings.pushover_enabled = False
             return
 
         if not (
