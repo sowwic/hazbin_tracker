@@ -4,6 +4,8 @@ import platformdirs
 
 # Package
 PACKAGE_NAME = "hazbin-tracker"
+AUTHOR_NAME = "Dmitrii Shevchenko"
+RELEASE_YEAR = 2025
 
 # Application
 APPLICATION_TITLE = "Hazbin Tracker"

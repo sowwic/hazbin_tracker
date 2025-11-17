@@ -7,7 +7,7 @@ from hazbin_tracker.core.constants import APP_DATA_DIR
 
 logging.basicConfig(
     level=logging.INFO,
-    filename=str(APP_DATA_DIR / "hazbin_tracker.log"),
+    filename=str(APP_DATA_DIR / "hazbin.log"),
     filemode="a",
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )

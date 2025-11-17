@@ -1,14 +1,11 @@
 import json
-import sys
-import os
-from pathlib import Path
-
 from hazbin_tracker.core.constants import CONFIG_FILE_PATH
 
 
 DEFAULT_CONFIG = {
     "PUSHOVER_USER_KEY": "",
-    "PUSHOVER_HAZBIN_APP_KEY": ""
+    "PUSHOVER_HAZBIN_APP_KEY": "",
+    "PUSHOVER_ENABLED": 1
 }
 
 
@@ -19,3 +16,7 @@ def load_keys():
     else:
         CONFIG_FILE_PATH.write_text(json.dumps(DEFAULT_CONFIG, indent=4))
         return None, None
+
+
+def load_config_file():
+    return json.loads(CONFIG_FILE_PATH.read_text())

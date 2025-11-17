@@ -2,6 +2,9 @@ import typing
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
+from .about_dialog import AboutDialog
+from ..core.constants import APPLICATION_TITLE
+
 if typing.TYPE_CHECKING:
     from hazbin_tracker.ui.application import HazbinTrackerApplication
     from hazbin_tracker.core.cards_tracker import CardsTracker
@@ -11,14 +14,22 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.check_for_updates_action = self.addAction("Check for Updates")
-        self.exit_action = self.addAction("Exit")
+        self.check_for_updates_action = self.addAction("Check for New Cards")
+        self.about_action = self.addAction("About")
+        self.addSeparator()
+        self.exit_action = self.addAction(f"Quit {APPLICATION_TITLE}")
+        self.about_action.triggered.connect(self.show_about_dialog)
         self.exit_action.triggered.connect(QtWidgets.QApplication.quit)
 
     @property
     def tracker(self) -> "CardsTracker":
         app: "HazbinTrackerApplication" = QtWidgets.QApplication.instance()
         return app.cards_tracker
+
+    @QtCore.Slot()
+    def show_about_dialog(self):
+        dialog = AboutDialog(self)
+        dialog.exec()
 
 
 class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
@@ -32,6 +43,7 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.context_menu.check_for_updates_action.triggered.connect(
             self.onCheckRequested
         )
+        self.tracker.new_cards_found.connect(self.show_new_cards_message)
 
     @property
     def tracker(self) -> "CardsTracker":
@@ -48,3 +60,12 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
                 QtWidgets.QSystemTrayIcon.NoIcon,
                 5000
             )
+
+    @QtCore.Slot(list)
+    def show_new_cards_message(self, new_cards):
+        self.showMessage(
+            "Hazbin Tracker",
+            self.tracker.generate_new_cards_message(new_cards),
+            QtWidgets.QSystemTrayIcon.NoIcon,
+            10000
+        )

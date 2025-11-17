@@ -1,4 +1,4 @@
-import os
+import typing
 import datetime
 import pathlib
 import json
@@ -6,18 +6,21 @@ import requests
 import logging
 
 from PySide6 import QtCore
+from PySide6 import QtWidgets
 
 from hazbin_tracker.core import config
 from hazbin_tracker.core.scrapper import get_all_cards
 from hazbin_tracker.core.constants import APP_DATA_DIR
 
+if typing.TYPE_CHECKING:
+    from ..ui.application import HazbinTrackerApplication
 
 LOGGER = logging.getLogger(__name__)
 
 
 class CardsTracker(QtCore.QObject):
 
-    TRACK_FILE_NAME = "tracked_cards.json"
+    TRACK_FILE_NAME = "track_data.json"
     CHECK_INTERVAL_HOURS = 1
     cards_updated = QtCore.Signal()
     check_time_updated = QtCore.Signal()
@@ -32,20 +35,37 @@ class CardsTracker(QtCore.QObject):
         super().__init__()
         self._last_check_time = None
         self._cards_data = None
-        self.user_key, self.api_key = config.load_keys()
-        if not self.user_key or not self.api_key:
-            raise ValueError(
-                (
-                    "Pushover USER_KEY and APP_KEY"
-                    f" must be set in config: {config.CONFIG_FILE_PATH}")
-            )
-
         self.populate_cards_data()
         self.new_cards_found.connect(self.on_new_cards_found)
-        self.run_check()
-        self.create_periodic_timer()
 
-    def create_periodic_timer(self):
+    @property
+    def cards_data(self):
+        return self._cards_data
+
+    @cards_data.setter
+    def cards_data(self, value):
+        self._cards_data = value
+        self.cards_updated.emit()
+
+    @property
+    def last_check_time(self):
+        return self._last_check_time
+
+    @last_check_time.setter
+    def last_check_time(self, value):
+        self._last_check_time = value
+        self.check_time_updated.emit()
+
+    @property
+    def track_file_path(self) -> pathlib.Path:
+        return APP_DATA_DIR / self.TRACK_FILE_NAME
+
+    @property
+    def application(self):
+        app: "HazbinTrackerApplication" = QtWidgets.QApplication.instance()
+        return app
+
+    def start_periodic_check_timer(self):
         self._check_timer = QtCore.QTimer(self)
         self._check_timer.setInterval(
             self.CHECK_INTERVAL_HOURS * 3600 * 1000)  # 1 hour in ms
@@ -104,38 +124,31 @@ class CardsTracker(QtCore.QObject):
     def record_time(self):
         self.last_check_time = datetime.datetime.now(datetime.timezone.utc)
 
-    def on_new_cards_found(self, new_cards: list):
+    def generate_new_cards_message(self, new_cards: list[dict]) -> str:
         message = f"Found {len(new_cards)} new Hazbin cards:"
         for card in new_cards:
             message += f"\n- {card.get('title')}"
-        requests.post(
-            "https://api.pushover.net/1/messages.json",
-            data={
-                "token": self.api_key,
-                "user": self.user_key,
-                "title": "HazbinTracker - New Cards available!",
-                "message": message,
-            }
-        )
+        return message
 
-    @property
-    def cards_data(self):
-        return self._cards_data
+    def on_new_cards_found(self, new_cards: list):
+        if not self.application.is_pushover_enabled:
+            return
 
-    @cards_data.setter
-    def cards_data(self, value):
-        self._cards_data = value
-        self.cards_updated.emit()
-
-    @property
-    def last_check_time(self):
-        return self._last_check_time
-
-    @last_check_time.setter
-    def last_check_time(self, value):
-        self._last_check_time = value
-        self.check_time_updated.emit()
-
-    @property
-    def track_file_path(self) -> pathlib.Path:
-        return APP_DATA_DIR / self.TRACK_FILE_NAME
+        try:
+            response = requests.post(
+                "https://api.pushover.net/1/messages.json",
+                data={
+                    "token": self.application.app_key,
+                    "user": self.application.user_key,
+                    "title": "HazbinTracker - New Cards available!",
+                    "message": self.generate_new_cards_message(new_cards),
+                },
+                timeout=10
+            )
+            response.raise_for_status()
+        except requests.RequestException:
+            LOGGER.exception(
+                "Failed to send Pushover notification for new cards due to HTTP error.")
+        except Exception:
+            LOGGER.exception(
+                "Failed to send Pushover notification due to unhandled error.")
