@@ -12,7 +12,6 @@ from hazbin_tracker.core.constants import (
 )
 
 from ..version import __version__
-from ..core import settings
 from ..core.cards_tracker import CardsTracker
 from .tray import HazbinTrackerSystemTrayIcon
 from ..core.settings import HazbinSettings
