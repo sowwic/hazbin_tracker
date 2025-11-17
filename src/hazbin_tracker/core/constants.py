@@ -1,8 +1,9 @@
-import importlib
+import pathlib
+import platformdirs
+
 
 # Package
 PACKAGE_NAME = "hazbin-tracker"
-HAZBIN_TRACKER_VERSION = importlib.metadata.version("hazbin-tracker")
 
 # Application
 APPLICATION_TITLE = "Hazbin Tracker"
@@ -14,3 +15,12 @@ HAZBIN_CARDS_PRODUCTS_JSON_URL = ("https://hazbinhotel.com/"
                                   )
 PRODUCTS_REQUEST_LIMIT = 250
 DEFAULT_SORT_KEY = "published_at"
+
+APP_DATA_DIR = pathlib.Path(platformdirs.user_data_dir(
+    appname=APPLICATION_TITLE,
+    appauthor=ORGANIZATION_NAME,
+    roaming=False,
+    ensure_exists=True
+))
+
+CONFIG_FILE_PATH = APP_DATA_DIR / "config.json"

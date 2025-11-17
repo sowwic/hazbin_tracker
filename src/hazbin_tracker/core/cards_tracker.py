@@ -6,9 +6,10 @@ import requests
 import logging
 
 from PySide6 import QtCore
-from PySide6 import QtWidgets
 
+from hazbin_tracker.core import config
 from hazbin_tracker.core.scrapper import get_all_cards
+from hazbin_tracker.core.constants import APP_DATA_DIR
 
 
 LOGGER = logging.getLogger(__name__)
@@ -31,14 +32,17 @@ class CardsTracker(QtCore.QObject):
         super().__init__()
         self._last_check_time = None
         self._cards_data = None
-        self.user_key = os.environ.get("PUSHOVER_USER_KEY")
-        self.api_key = os.environ.get("PUSHOVER_HAZBIN_APP_KEY")
+        self.user_key, self.api_key = config.load_keys()
         if not self.user_key or not self.api_key:
-            raise ValueError("Pushover USER_KEY and API_KEY must be set")
+            raise ValueError(
+                (
+                    "Pushover USER_KEY and APP_KEY"
+                    f" must be set in config: {config.CONFIG_FILE_PATH}")
+            )
 
         self.populate_cards_data()
         self.new_cards_found.connect(self.on_new_cards_found)
-        # self.run_check()
+        self.run_check()
         self.create_periodic_timer()
 
     def create_periodic_timer(self):
@@ -48,7 +52,7 @@ class CardsTracker(QtCore.QObject):
         self._check_timer.timeout.connect(self.run_check)
         self._check_timer.start()
 
-    def run_check(self):
+    def run_check(self) -> list[dict]:
         LOGGER.info("Running cards check...")
         source_cards = get_all_cards()
 
@@ -61,11 +65,12 @@ class CardsTracker(QtCore.QObject):
                 new_cards.append(card)
 
         LOGGER.info(f"Found {len(new_cards)} new cards.")
+        self.cards_data = source_cards
+        self.record_time()
+        self.create_cache()
         if new_cards:
-            self.cards_data = source_cards
-            self.record_time()
             self.new_cards_found.emit(new_cards)
-            self.create_cache()
+        return new_cards
 
     def populate_cards_data(self):
         try:
@@ -100,12 +105,16 @@ class CardsTracker(QtCore.QObject):
         self.last_check_time = datetime.datetime.now(datetime.timezone.utc)
 
     def on_new_cards_found(self, new_cards: list):
+        message = f"Found {len(new_cards)} new Hazbin cards:"
+        for card in new_cards:
+            message += f"\n- {card.get('title')}"
         requests.post(
             "https://api.pushover.net/1/messages.json",
             data={
                 "token": self.api_key,
                 "user": self.user_key,
-                "message": "New Hazbin cards released!",
+                "title": "HazbinTracker - New Cards available!",
+                "message": message,
             }
         )
 
@@ -129,5 +138,4 @@ class CardsTracker(QtCore.QObject):
 
     @property
     def track_file_path(self) -> pathlib.Path:
-        app = QtWidgets.QApplication.instance()
-        return app.app_data_dir / self.TRACK_FILE_NAME
+        return APP_DATA_DIR / self.TRACK_FILE_NAME
