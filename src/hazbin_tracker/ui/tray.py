@@ -17,11 +17,14 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
         self.last_check_info_action = self.addAction("Last checked: Never")
         self.last_check_info_action.setEnabled(False)
         self.check_for_updates_action = self.addAction("Check for New Cards")
+        self.settings_action = self.addAction("Settings...")
         self.about_action = self.addAction("About...")
         self.addSeparator()
         self.exit_action = self.addAction(f"Quit {APPLICATION_TITLE}")
 
         self.tracker.check_time_updated.connect(self.update_last_checked_action)
+        self.settings_action.triggered.connect(
+            self.tracker.application.show_settings_dialog)
         self.about_action.triggered.connect(self.show_about_dialog)
         self.exit_action.triggered.connect(QtWidgets.QApplication.quit)
 

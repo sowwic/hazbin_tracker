@@ -8,7 +8,7 @@ AUTHOR_NAME = "Dmitrii Shevchenko"
 RELEASE_YEAR = 2025
 
 # Application
-APPLICATION_TITLE = "Hazbin Tracker"
+APPLICATION_TITLE = "HazbinTracker"
 ORGANIZATION_NAME = "Sowwic"
 
 # Scrapping
@@ -25,4 +25,4 @@ APP_DATA_DIR = pathlib.Path(platformdirs.user_data_dir(
     ensure_exists=True
 ))
 
-CONFIG_FILE_PATH = APP_DATA_DIR / "config.json"
+SETTINGS_FILE_PATH = APP_DATA_DIR / "settings.ini"

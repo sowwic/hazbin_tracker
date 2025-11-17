@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Nyx application",
+            "name": "HazbinTracker",
             "type": "debugpy",
             "request": "launch",
             "program": "src/hazbin_tracker/main.py",

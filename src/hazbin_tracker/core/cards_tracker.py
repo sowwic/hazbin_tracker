@@ -8,7 +8,6 @@ import logging
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
-from hazbin_tracker.core import config
 from hazbin_tracker.core.scrapper import get_all_cards
 from hazbin_tracker.core.constants import APP_DATA_DIR
 
@@ -138,15 +137,15 @@ class CardsTracker(QtCore.QObject):
         return message
 
     def on_new_cards_found(self, new_cards: list):
-        if not self.application.is_pushover_enabled:
+        if not self.application.settings.pushover_enabled:
             return
 
         try:
             response = requests.post(
                 "https://api.pushover.net/1/messages.json",
                 data={
-                    "token": self.application.app_key,
-                    "user": self.application.user_key,
+                    "token": self.application.settings.pushover_app_key,
+                    "user": self.application.settings.pushover_user_key,
                     "title": "HazbinTracker - New Cards available!",
                     "message": self.generate_new_cards_message(new_cards),
                 },
