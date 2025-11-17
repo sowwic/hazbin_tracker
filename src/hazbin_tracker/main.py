@@ -2,19 +2,15 @@ import sys
 import logging
 from PySide6.QtWidgets import QMessageBox
 
-from hazbin_tracker.api import HazbinTrackerApplication
-from hazbin_tracker.core.constants import APP_DATA_DIR
+from hazbin_tracker.core.logger import HazbinLogger
+logging.setLoggerClass(HazbinLogger)
 
-logging.basicConfig(
-    level=logging.INFO,
-    filename=str(APP_DATA_DIR / "hazbin.log"),
-    filemode="a",
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-)
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 def main():
+    from hazbin_tracker.api import HazbinTrackerApplication
     try:
         app = HazbinTrackerApplication(sys.argv)
         sys.exit(app.exec())
