@@ -1,11 +1,22 @@
 # -*- mode: python ; coding: utf-8 -*-
+from pathlib import Path
+from PyInstaller.utils.hooks import collect_data_files
+import sys
 
+# --- Read VERSION at build time ---
+version_file = Path("VERSION")
+if version_file.exists():
+    with version_file.open() as f:
+        app_version = f.read().strip()
+else:
+    app_version = "0.0.0"
 
+# --- Analysis ---
 a = Analysis(
     ['src/hazbin_tracker/main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('VERSION', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -14,8 +25,11 @@ a = Analysis(
     noarchive=False,
     optimize=0,
 )
+
+# --- Python modules ---
 pyz = PYZ(a.pure)
 
+# --- Executable ---
 exe = EXE(
     pyz,
     a.scripts,
@@ -33,6 +47,8 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
+
+# --- Collect files ---
 coll = COLLECT(
     exe,
     a.binaries,
@@ -42,12 +58,16 @@ coll = COLLECT(
     upx_exclude=[],
     name='HazbinTracker',
 )
+
+# --- Bundle for macOS ---
 app = BUNDLE(
     coll,
     name='HazbinTracker.app',
     icon='resources/icons/HazbinTracker.icns',
     bundle_identifier=None,
     info_plist={
-        "LSUIElement": True
+        "CFBundleShortVersionString": app_version,  # shown in Finder
+        "CFBundleVersion": app_version,             # internal build number
+        "LSUIElement": True,                        # hide dock icon for tray app
     },
 )

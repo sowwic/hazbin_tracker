@@ -22,8 +22,13 @@ check: lint pytest
 qrc:
 	pyside6-rcc resources/resources.qrc -o resources/resources_rc.py
 
-app:
+app: qrc update-version
 	pyinstaller HazbinTracker.spec
+
+update-version:
+	@VERSION=$$(cat VERSION); \
+	echo "Updating pyproject.toml version to $$VERSION"; \
+	poetry version $$VERSION
 
 iconset:
 	mkdir -p resources/icons/HazbinTracker.iconset

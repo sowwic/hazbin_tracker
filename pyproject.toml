@@ -1,9 +1,9 @@
 [project]
 name = "hazbin-tracker"
-version = "0.1.0"
+version = "1.0.0"
 description = "Hazbin hotel cards release tracker"
 authors = [
-    {name = "sowwic",email = "47799401+sowwic@users.noreply.github.com"}
+    {name = "Dmitrii Shevchenko",email = "47799401+sowwic@users.noreply.github.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
@@ -25,10 +25,9 @@ dev = [
     "pyinstaller (>=6.16.0,<7.0.0)",
 ]
 
-
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.flake8]
-max-line-length = 80
+max-line-length = 89
