@@ -62,4 +62,5 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
     def show_settings_dialog(self):
         dialog = SettingsDialog(self.settings, parent=self.main_window)
         dialog.center_on_screen()
-        dialog.show()
+        dialog.raise_()
+        dialog.exec()
