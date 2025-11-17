@@ -14,10 +14,14 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.last_check_info_action = self.addAction("Last checked: Never")
+        self.last_check_info_action.setEnabled(False)
         self.check_for_updates_action = self.addAction("Check for New Cards")
-        self.about_action = self.addAction("About")
+        self.about_action = self.addAction("About...")
         self.addSeparator()
         self.exit_action = self.addAction(f"Quit {APPLICATION_TITLE}")
+
+        self.tracker.check_time_updated.connect(self.update_last_checked_action)
         self.about_action.triggered.connect(self.show_about_dialog)
         self.exit_action.triggered.connect(QtWidgets.QApplication.quit)
 
@@ -30,6 +34,12 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
     def show_about_dialog(self):
         dialog = AboutDialog(self)
         dialog.exec()
+
+    @QtCore.Slot()
+    def update_last_checked_action(self):
+        self.last_check_info_action.setText(
+            f"Last checked: {self.tracker.nice_last_checked_time}"
+        )
 
 
 class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):

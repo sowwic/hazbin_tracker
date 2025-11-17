@@ -37,6 +37,7 @@ class CardsTracker(QtCore.QObject):
         self._cards_data = None
         self.populate_cards_data()
         self.new_cards_found.connect(self.on_new_cards_found)
+        LOGGER.info(f"Started tracker: {self}")
 
     @property
     def cards_data(self):
@@ -55,6 +56,12 @@ class CardsTracker(QtCore.QObject):
     def last_check_time(self, value):
         self._last_check_time = value
         self.check_time_updated.emit()
+
+    @property
+    def nice_last_checked_time(self):
+        if not self.last_check_time:
+            return "Never"
+        return self.last_check_time.strftime("%d-%m-%Y at %H:%M:%S")
 
     @property
     def track_file_path(self) -> pathlib.Path:
@@ -106,7 +113,7 @@ class CardsTracker(QtCore.QObject):
         self._last_check_time = datetime.datetime.fromisoformat(
             cache_data.get("last_check_time")
         )
-        LOGGER.info(
+        LOGGER.debug(
             f"Loaded {len(self._cards_data)} cards from {self.track_file_path}")
 
     def fetch_cards_data_from_source(self):
