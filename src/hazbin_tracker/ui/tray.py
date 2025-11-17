@@ -80,5 +80,5 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
             "Hazbin Tracker",
             self.tracker.generate_new_cards_message(new_cards),
             QtWidgets.QSystemTrayIcon.NoIcon,
-            10000
+            0
         )
