@@ -12,6 +12,7 @@ APPLICATION_TITLE = "HazbinTracker"
 ORGANIZATION_NAME = "Sowwic"
 
 # Scrapping
+HAZBIN_WEBSITE_URL = "https://hazbinhotel.com/collections/trading-cards"
 HAZBIN_CARDS_PRODUCTS_JSON_URL = ("https://hazbinhotel.com/"
                                   "collections/trading-cards/products.json"
                                   )

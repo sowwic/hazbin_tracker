@@ -1,9 +1,10 @@
 import typing
+import webbrowser
 from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 from .about_dialog import AboutDialog
-from ..core.constants import APPLICATION_TITLE
+from ..core.constants import APPLICATION_TITLE, HAZBIN_WEBSITE_URL
 
 if typing.TYPE_CHECKING:
     from hazbin_tracker.ui.application import HazbinTrackerApplication
@@ -57,6 +58,7 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
             self.onCheckRequested
         )
         self.tracker.new_cards_found.connect(self.show_new_cards_message)
+        self.messageClicked.connect(self.open_hazbin_website)
 
     @property
     def tracker(self) -> "CardsTracker":
@@ -82,3 +84,7 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
             QtWidgets.QSystemTrayIcon.NoIcon,
             0
         )
+
+    @QtCore.Slot()
+    def open_hazbin_website(self):
+        webbrowser.open_new_tab(HAZBIN_WEBSITE_URL)
