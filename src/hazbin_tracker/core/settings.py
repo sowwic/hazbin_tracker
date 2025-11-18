@@ -3,7 +3,6 @@ from hazbin_tracker.core.constants import SETTINGS_FILE_PATH
 from PySide6 import QtCore
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
 
 
 class HazbinSettings(QtCore.QObject):

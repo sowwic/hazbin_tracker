@@ -1,6 +1,6 @@
+import os
 import pathlib
 import platformdirs
-
 
 # Package
 PACKAGE_NAME = "hazbin-tracker"
@@ -10,6 +10,7 @@ RELEASE_YEAR = 2025
 # Application
 APPLICATION_TITLE = "HazbinTracker"
 ORGANIZATION_NAME = "Sowwic"
+DEBUG = int(os.getenv("HAZBIN_DEBUG", 0))
 
 # Scrapping
 HAZBIN_WEBSITE_URL = "https://hazbinhotel.com/collections/trading-cards"

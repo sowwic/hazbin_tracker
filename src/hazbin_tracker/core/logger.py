@@ -1,7 +1,6 @@
 import logging
 import sys
-
-from hazbin_tracker.core.constants import APP_DATA_DIR
+from hazbin_tracker.core.constants import APP_DATA_DIR, DEBUG
 
 
 class HazbinLogger(logging.Logger):
@@ -12,6 +11,7 @@ class HazbinLogger(logging.Logger):
     FILE_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 
     def __init__(self, name, level=logging.INFO):
+        level = logging.DEBUG if DEBUG else level
         super().__init__(name, level)
         self.init_handlers()
 
