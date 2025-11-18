@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/hazbin.png</file>
+        <file>icons/cards.png</file>
+    </qresource>
+</RCC>
