@@ -16,30 +16,6 @@ class HazbinSettings(QtCore.QObject):
         LOGGER.debug(f"Settings file: {self._settings.fileName()}")
 
     # ----------------------
-    # General log settings
-    # ----------------------
-
-    @property
-    def log_level(self) -> int:
-        return self._settings.value(
-            "log_level", defaultValue=logging.INFO, type=int
-        )
-
-    @log_level.setter
-    def log_level(self, level: int):
-        self._settings.setValue("log_level", level)
-
-    @property
-    def file_log_level(self) -> int:
-        return self._settings.value(
-            "file_log_level", defaultValue=logging.WARNING, type=int
-        )
-
-    @file_log_level.setter
-    def file_log_level(self, level: int):
-        self._settings.setValue("file_log_level", level)
-
-    # ----------------------
     # Pushover
     # ----------------------
 
