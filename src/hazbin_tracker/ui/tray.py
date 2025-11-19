@@ -12,7 +12,6 @@ if typing.TYPE_CHECKING:
 
 
 class SystemTrayContextMenu(QtWidgets.QMenu):
-
     def __init__(self, parent=None):
         super().__init__(parent)
         self.last_check_info_action = self.addAction("Last checked: Never")
@@ -25,13 +24,14 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
 
         self.tracker.check_time_updated.connect(self.update_last_checked_action)
         self.settings_action.triggered.connect(
-            self.tracker.application.show_settings_dialog)
+            self.tracker.application.show_settings_dialog
+        )
         self.about_action.triggered.connect(self.show_about_dialog)
         self.exit_action.triggered.connect(QtWidgets.QApplication.quit)
 
     @property
     def tracker(self) -> "CardsTracker":
-        app: "HazbinTrackerApplication" = QtWidgets.QApplication.instance()
+        app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
         return app.cards_tracker
 
     @QtCore.Slot()
@@ -47,7 +47,6 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
 
 
 class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
-
     def __init__(self, icon, parent=None):
         super().__init__(icon, parent)
         self.setToolTip("Hazbin Tracker")
@@ -62,7 +61,7 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     @property
     def tracker(self) -> "CardsTracker":
-        app: "HazbinTrackerApplication" = QtWidgets.QApplication.instance()
+        app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
         return app.cards_tracker
 
     @QtCore.Slot()
@@ -73,7 +72,7 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
                 "Hazbin Tracker",
                 "No new Hazbin cards found.",
                 QtWidgets.QSystemTrayIcon.NoIcon,
-                5000
+                5000,
             )
 
     @QtCore.Slot(list)
@@ -82,7 +81,7 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
             "Hazbin Tracker",
             self.tracker.generate_new_cards_message(new_cards),
             QtWidgets.QSystemTrayIcon.NoIcon,
-            0
+            0,
         )
 
     @QtCore.Slot()
