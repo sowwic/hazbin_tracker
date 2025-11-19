@@ -31,8 +31,12 @@ clean:
 	@printf "$(GREEN)Clean up complete.$(RESET)\n"
 
 lint:
-	$(call banner, Running flake8 linting...)
-	@poetry run flake8 src tests
+	$(call banner, Running Ruff linter...)
+	@poetry run ruff check src tests || true
+
+format:
+	$(call banner, Running Ruff formatter...)
+	@poetry run ruff format src tests
 
 .PHONY: pytest
 pytest:
@@ -46,7 +50,7 @@ qrc:
 	@pyside6-rcc resources/resources.qrc -o resources/resources_rc.py
 	@printf "$(GREEN)QRC generation complete.$(RESET)\n"
 
-app: qrc update-version
+app: update-version
 	$(call banner, Building $(APP_NAME)...)
 	@pyinstaller HazbinTracker.spec
 
