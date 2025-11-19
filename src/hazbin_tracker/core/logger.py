@@ -4,7 +4,6 @@ from hazbin_tracker.core.constants import APP_DATA_DIR, DEBUG
 
 
 class HazbinLogger(logging.Logger):
-
     LOG_FILE_PATH = str(APP_DATA_DIR / "hazbin.log")
     FILE_LEVEL = logging.WARNING
     STD_OUT_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"

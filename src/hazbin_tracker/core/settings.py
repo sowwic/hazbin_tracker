@@ -6,7 +6,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 class HazbinSettings(QtCore.QObject):
-
     def __init__(self):
         super().__init__()
         self._settings = QtCore.QSettings(
@@ -20,9 +19,7 @@ class HazbinSettings(QtCore.QObject):
 
     @property
     def pushover_enabled(self) -> bool:
-        return self._settings.value(
-            "pushover/enabled", defaultValue=False, type=bool
-        )
+        return self._settings.value("pushover/enabled", defaultValue=False, type=bool)
 
     @pushover_enabled.setter
     def pushover_enabled(self, state: bool):
@@ -30,9 +27,7 @@ class HazbinSettings(QtCore.QObject):
 
     @property
     def pushover_user_key(self) -> str:
-        return self._settings.value(
-            "pushover/user_key", defaultValue="", type=str
-        )
+        return self._settings.value("pushover/user_key", defaultValue="", type=str)
 
     @pushover_user_key.setter
     def pushover_user_key(self, value: str):
@@ -40,9 +35,7 @@ class HazbinSettings(QtCore.QObject):
 
     @property
     def pushover_app_key(self) -> str:
-        return self._settings.value(
-            "pushover/app_key", defaultValue="", type=str
-        )
+        return self._settings.value("pushover/app_key", defaultValue="", type=str)
 
     @pushover_app_key.setter
     def pushover_app_key(self, value: str):

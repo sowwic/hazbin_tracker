@@ -20,8 +20,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
         group_layout = QtWidgets.QFormLayout()
 
-        self.user_key_edit = QtWidgets.QLineEdit(
-            self.settings.pushover_user_key)
+        self.user_key_edit = QtWidgets.QLineEdit(self.settings.pushover_user_key)
         self.app_key_edit = QtWidgets.QLineEdit(self.settings.pushover_app_key)
 
         group_layout.addRow("User Key:", self.user_key_edit)

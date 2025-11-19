@@ -3,6 +3,7 @@ import logging
 from PySide6.QtWidgets import QMessageBox
 
 from hazbin_tracker.core.logger import HazbinLogger
+
 logging.setLoggerClass(HazbinLogger)
 
 LOGGER = logging.getLogger(__name__)
@@ -11,6 +12,7 @@ LOGGER.setLevel(logging.INFO)
 
 def main():
     from hazbin_tracker.api import HazbinTrackerApplication
+
     try:
         app = HazbinTrackerApplication(sys.argv)
         sys.exit(app.exec())

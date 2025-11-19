@@ -4,7 +4,7 @@ import logging
 from .constants import (
     HAZBIN_CARDS_PRODUCTS_JSON_URL,
     PRODUCTS_REQUEST_LIMIT,
-    DEFAULT_SORT_KEY
+    DEFAULT_SORT_KEY,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -21,10 +21,7 @@ def get_all_products() -> list[dict]:
     while True:
         resp = requests.get(
             HAZBIN_CARDS_PRODUCTS_JSON_URL,
-            params={
-                "limit": PRODUCTS_REQUEST_LIMIT,
-                "page": page
-            }
+            params={"limit": PRODUCTS_REQUEST_LIMIT, "page": page},
         )
         resp.raise_for_status()
         data = resp.json().get("products")
@@ -42,8 +39,4 @@ def get_all_cards() -> list[dict]:
         list[dict]: A list of sorted cards dictionaries.
     """
     products = get_all_products()
-    return sorted(
-        products,
-        key=lambda x: x[DEFAULT_SORT_KEY],
-        reverse=True
-    )
+    return sorted(products, key=lambda x: x[DEFAULT_SORT_KEY], reverse=True)

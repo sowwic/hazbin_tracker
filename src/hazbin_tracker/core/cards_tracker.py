@@ -18,7 +18,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 class CardsTracker(QtCore.QObject):
-
     TRACK_FILE_NAME = "track_data.json"
     CHECK_INTERVAL_HOURS = 1
     cards_updated = QtCore.Signal()
@@ -26,9 +25,11 @@ class CardsTracker(QtCore.QObject):
     new_cards_found = QtCore.Signal(list)
 
     def __repr__(self):
-        return (f"<CardsTracker last_check_time={self._last_check_time}"
-                " cards_count="
-                f"{len(self._cards_data) if self._cards_data else 0}>")
+        return (
+            f"<CardsTracker last_check_time={self._last_check_time}"
+            " cards_count="
+            f"{len(self._cards_data) if self._cards_data else 0}>"
+        )
 
     def __init__(self):
         super().__init__()
@@ -68,13 +69,14 @@ class CardsTracker(QtCore.QObject):
 
     @property
     def application(self):
-        app: "HazbinTrackerApplication" = QtWidgets.QApplication.instance()
+        app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
         return app
 
     def start_periodic_check_timer(self):
         self._check_timer = QtCore.QTimer(self)
         self._check_timer.setInterval(
-            self.CHECK_INTERVAL_HOURS * 3600 * 1000)  # 1 hour in ms
+            self.CHECK_INTERVAL_HOURS * 3600 * 1000
+        )  # 1 hour in ms
         self._check_timer.timeout.connect(self.run_check)
         self._check_timer.start()
 
@@ -84,9 +86,7 @@ class CardsTracker(QtCore.QObject):
 
         new_cards = []
         for card in source_cards:
-            cards_published_at = datetime.datetime.fromisoformat(
-                card["published_at"]
-            )
+            cards_published_at = datetime.datetime.fromisoformat(card["published_at"])
             if cards_published_at > self._last_check_time:
                 new_cards.append(card)
 
@@ -112,8 +112,7 @@ class CardsTracker(QtCore.QObject):
         self._last_check_time = datetime.datetime.fromisoformat(
             cache_data.get("last_check_time")
         )
-        LOGGER.debug(
-            f"Loaded {len(self._cards_data)} cards from {self.track_file_path}")
+        LOGGER.debug(f"Loaded {len(self._cards_data)} cards from {self.track_file_path}")
 
     def fetch_cards_data_from_source(self):
         self._cards_data = get_all_cards()
@@ -122,13 +121,13 @@ class CardsTracker(QtCore.QObject):
     def create_cache(self):
         cache_content = {
             "last_check_time": self.last_check_time.isoformat(),
-            "cards": self.cards_data
+            "cards": self.cards_data,
         }
         with self.track_file_path.open("w") as cache_file:
             json.dump(cache_content, cache_file, indent=4)
 
     def record_time(self):
-        self.last_check_time = datetime.datetime.now(datetime.timezone.utc)
+        self.last_check_time = datetime.datetime.now(datetime.UTC)
 
     def generate_new_cards_message(self, new_cards: list[dict]) -> str:
         message = f"Found {len(new_cards)} new Hazbin cards:"
@@ -149,12 +148,14 @@ class CardsTracker(QtCore.QObject):
                     "title": "HazbinTracker - New Cards available!",
                     "message": self.generate_new_cards_message(new_cards),
                 },
-                timeout=10
+                timeout=10,
             )
             response.raise_for_status()
         except requests.RequestException:
             LOGGER.exception(
-                "Failed to send Pushover notification for new cards due to HTTP error.")
+                "Failed to send Pushover notification for new cards due to HTTP error."
+            )
         except Exception:
             LOGGER.exception(
-                "Failed to send Pushover notification due to unhandled error.")
+                "Failed to send Pushover notification due to unhandled error."
+            )
