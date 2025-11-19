@@ -28,9 +28,11 @@ class AboutDialog(QtWidgets.QDialog):
 
         # Version & developer info
         info_label = QtWidgets.QLabel(
-            (f"Version {QtWidgets.QApplication.applicationVersion()}<br>"
-             f"Developed by {AUTHOR_NAME}<br>&copy; {RELEASE_YEAR}"),
-            self
+            (
+                f"Version {QtWidgets.QApplication.applicationVersion()}<br>"
+                f"Developed by {AUTHOR_NAME}<br>&copy; {RELEASE_YEAR}"
+            ),
+            self,
         )
         info_label.setAlignment(QtCore.Qt.AlignCenter)
         layout.addWidget(info_label)

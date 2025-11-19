@@ -24,7 +24,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 class HazbinTrackerApplication(QtWidgets.QApplication):
-
     LOCK_FILE = pathlib.Path(QtCore.QDir.tempPath()) / "hazbin_tracker.lock"
 
     def __init__(self, argv):
@@ -42,8 +41,7 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
         self._setup_pushover()
 
         self.cards_tracker = CardsTracker()
-        self.tray_icon = HazbinTrackerSystemTrayIcon(
-            QtGui.QIcon(":/icons/cards.png"))
+        self.tray_icon = HazbinTrackerSystemTrayIcon(QtGui.QIcon(":/icons/cards.png"))
 
         self.tray_icon.show()
         self.cards_tracker.run_check()
@@ -54,9 +52,7 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
             self.settings.pushover_enabled = False
             return
 
-        if not (
-            self.settings.pushover_user_key and self.settings.pushover_app_key
-        ):
+        if not (self.settings.pushover_user_key and self.settings.pushover_app_key):
             self.show_settings_dialog()
             if not self.settings.pushover_app_key:
                 self.settings.pushover_app_key = ""
