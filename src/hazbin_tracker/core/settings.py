@@ -6,7 +6,10 @@ LOGGER = logging.getLogger(__name__)
 
 
 class HazbinSettings(QtCore.QObject):
-    TRACKER_CHECK_FREQUENCY_MINIMUM = 0.1
+    TRACKER_CHECK_FREQUENCY_MINIMUM = 1
+    TRACKER_CHECK_FREQUENCY_DEFAULT = 60
+
+    tracker_frequency_changed = QtCore.Signal(int)
 
     def __init__(self):
         super().__init__()
@@ -30,6 +33,7 @@ class HazbinSettings(QtCore.QObject):
     @pushover_enabled.setter
     def pushover_enabled(self, state: bool):
         self._settings.setValue("pushover/enabled", state)
+        LOGGER.debug(f"Pushover enabled set: {state}")
 
     @property
     def pushover_user_key(self) -> str:
@@ -38,6 +42,7 @@ class HazbinSettings(QtCore.QObject):
     @pushover_user_key.setter
     def pushover_user_key(self, value: str):
         self._settings.setValue("pushover/user_key", value)
+        LOGGER.debug(f"Pushover user key set: {value}")
 
     @property
     def pushover_app_key(self) -> str:
@@ -46,14 +51,23 @@ class HazbinSettings(QtCore.QObject):
     @pushover_app_key.setter
     def pushover_app_key(self, value: str):
         self._settings.setValue("pushover/app_key", value)
+        LOGGER.debug(f"Pushover app key set: {value}")
 
     @property
-    def tracker_check_hour_frequency(self) -> float:
-        self._settings.value("tracker/check_frequency", defaultValue=1.0, type=float)
+    def tracker_check_minute_frequency(self) -> int:
+        return self._settings.value(
+            "tracker/check_frequency",
+            defaultValue=self.TRACKER_CHECK_FREQUENCY_DEFAULT,
+            type=int,
+        )
 
-    @tracker_check_hour_frequency.setter
-    def tracker_check_hour_frequency(self, value: float):
+    @tracker_check_minute_frequency.setter
+    def tracker_check_minute_frequency(self, value: int):
         if value < self.TRACKER_CHECK_FREQUENCY_MINIMUM:
-            LOGGER.warning("Frequency can't be less that 0.1h")
+            LOGGER.warning(
+                f"Frequency can't be less that {self.TRACKER_CHECK_FREQUENCY_MINIMUM}min"
+            )
             return
         self._settings.setValue("tracker/check_frequency", value)
+        LOGGER.info(f"Check frequency set to: {value}min")
+        self.tracker_frequency_changed.emit(value)
