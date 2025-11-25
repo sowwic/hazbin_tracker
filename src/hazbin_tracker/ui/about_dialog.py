@@ -37,11 +37,6 @@ class AboutDialog(QtWidgets.QDialog):
         info_label.setAlignment(QtCore.Qt.AlignCenter)
         layout.addWidget(info_label)
 
-        # Close button
-        close_button = QtWidgets.QPushButton("Close", self)
-        close_button.clicked.connect(self.accept)
-        layout.addWidget(close_button, alignment=QtCore.Qt.AlignCenter)
-
         self.center_on_screen()
 
     def center_on_screen(self):

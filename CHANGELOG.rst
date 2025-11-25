@@ -1,6 +1,11 @@
 hazbin-tracker
 ==============
 
+v 1.0.2
+-------
+
+* (#9) Add check frequency time setting
+
 v 1.0.1
 -------
 
