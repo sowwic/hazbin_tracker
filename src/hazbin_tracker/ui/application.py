@@ -44,7 +44,6 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
         self.tray_icon = HazbinTrackerSystemTrayIcon(QtGui.QIcon(":/icons/cards.png"))
 
         self.tray_icon.show()
-        self.cards_tracker.run_check()
         self.cards_tracker.start_periodic_check_timer()
 
     def _setup_pushover(self):

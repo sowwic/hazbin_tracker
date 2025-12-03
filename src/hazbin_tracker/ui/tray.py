@@ -22,6 +22,10 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
         self.addSeparator()
         self.exit_action = self.addAction(f"Quit {APPLICATION_TITLE}")
 
+        # Initial updates
+        self.update_last_checked_action()
+
+        # Signals
         self.tracker.check_time_updated.connect(self.update_last_checked_action)
         self.settings_action.triggered.connect(
             self.tracker.application.show_settings_dialog
