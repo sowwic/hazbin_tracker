@@ -19,10 +19,15 @@ def get_all_products() -> list[dict]:
     all_products = []
     page = 1
     while True:
-        resp = requests.get(
-            HAZBIN_CARDS_PRODUCTS_JSON_URL,
-            params={"limit": PRODUCTS_REQUEST_LIMIT, "page": page},
-        )
+        try:
+            resp = requests.get(
+                HAZBIN_CARDS_PRODUCTS_JSON_URL,
+                params={"limit": PRODUCTS_REQUEST_LIMIT, "page": page},
+                timeout=10,
+            )
+        except requests.exceptions.ConnectionError:
+            LOGGER.error("No network connection.")
+            break
         resp.raise_for_status()
         data = resp.json().get("products")
         if not data:

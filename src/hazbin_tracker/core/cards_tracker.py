@@ -125,8 +125,10 @@ class CardsTracker(QtCore.QObject):
         with self.track_file_path.open() as cache_file:
             cache_data = json.load(cache_file)
         self._cards_data = cache_data.get("cards", [])
-        self._last_check_time = datetime.datetime.fromisoformat(
-            cache_data.get("last_check_time")
+        self.record_time(
+            time_override=datetime.datetime.fromisoformat(
+                cache_data.get("last_check_time")
+            )
         )
         LOGGER.debug(f"Loaded {len(self._cards_data)} cards from {self.track_file_path}")
 
@@ -144,9 +146,13 @@ class CardsTracker(QtCore.QObject):
         with self.track_file_path.open("w") as cache_file:
             json.dump(cache_content, cache_file, indent=4)
 
-    def record_time(self):
-        LOGGER.debug("Recording time")
-        self.last_check_time = datetime.datetime.now(datetime.UTC)
+    def record_time(self, time_override: datetime.datetime = None):
+        LOGGER.debug("Recording time...")
+        new_time = (
+            time_override if time_override else datetime.datetime.now(datetime.UTC)
+        )
+        self.last_check_time = new_time
+        LOGGER.debug(f"Recorded time: {self.last_check_time}")
 
     def generate_new_cards_message(self, new_cards: list[dict]) -> str:
         LOGGER.debug("Generating new cards message...")

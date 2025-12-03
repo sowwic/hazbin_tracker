@@ -1,6 +1,11 @@
 hazbin-tracker
 ==============
 
+v 1.0.3
+-------
+
+* (#14) Remove auto check on app start, handle no connection
+
 v 1.0.2
 -------
 
