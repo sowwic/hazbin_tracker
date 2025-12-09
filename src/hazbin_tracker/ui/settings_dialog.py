@@ -6,7 +6,15 @@ if typing.TYPE_CHECKING:
 
 
 class SettingsDialog(QtWidgets.QDialog):
-    def __init__(self, settings: "HazbinSettings", parent=None):
+    """Settings dialog for Hazbin Tracker application."""
+
+    def __init__(self, settings: "HazbinSettings", parent: QtWidgets.QWidget = None):
+        """Instance constructor.
+
+        Args:
+            settings (HazbinSettings): The settings manager instance.
+            parent (QtWidgets.QWidget, optional): Parent widget. Defaults to None.
+        """
         super().__init__(parent)
         self.setWindowTitle("Settings")
         self.setModal(True)
@@ -76,6 +84,7 @@ class SettingsDialog(QtWidgets.QDialog):
         super().accept()
 
     def center_on_screen(self):
+        """Center the dialog on the screen."""
         screen_geometry = QtWidgets.QApplication.primaryScreen().availableGeometry()
         x = (screen_geometry.width() - self.width()) // 2
         y = (screen_geometry.height() - self.height()) // 2

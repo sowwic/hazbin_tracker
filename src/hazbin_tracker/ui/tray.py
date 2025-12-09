@@ -12,7 +12,14 @@ if typing.TYPE_CHECKING:
 
 
 class SystemTrayContextMenu(QtWidgets.QMenu):
-    def __init__(self, parent=None):
+    """System tray context menu for Hazbin Tracker."""
+
+    def __init__(self, parent: QtWidgets.QWidget = None):
+        """Instance constructor.
+
+        Args:
+            parent (QtWidgets.QWidget, optional): Parent widget. Defaults to None.
+        """
         super().__init__(parent)
         self.last_check_info_action = self.addAction("Last checked: Never")
         self.last_check_info_action.setEnabled(False)
@@ -35,23 +42,34 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
 
     @property
     def tracker(self) -> "CardsTracker":
+        """Get the CardsTracker instance from the application."""
         app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
         return app.cards_tracker
 
     @QtCore.Slot()
     def show_about_dialog(self):
+        """Show the About dialog."""
         dialog = AboutDialog(self)
         dialog.exec()
 
     @QtCore.Slot()
     def update_last_checked_action(self):
+        """Update the last checked info in the context menu."""
         self.last_check_info_action.setText(
             f"Last checked: {self.tracker.nice_last_checked_time}"
         )
 
 
 class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
-    def __init__(self, icon, parent=None):
+    """System tray icon for Hazbin Tracker."""
+
+    def __init__(self, icon, parent: QtWidgets.QWidget = None):
+        """Instance constructor.
+
+        Args:
+            icon (QtGui.QIcon): The icon to display in the system tray.
+            parent (QtWidgets.QWidget, optional): Parent widget. Defaults to None.
+        """
         super().__init__(icon, parent)
         self.setToolTip("Hazbin Tracker")
         self.context_menu = SystemTrayContextMenu(parent)
@@ -65,11 +83,13 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     @property
     def tracker(self) -> "CardsTracker":
+        """Get the CardsTracker instance from the application."""
         app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
         return app.cards_tracker
 
     @QtCore.Slot()
     def onCheckRequested(self):
+        """Handle user request to check for new cards."""
         new_cards = self.tracker.run_check()
         if not new_cards:
             self.showMessage(
@@ -80,7 +100,12 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
             )
 
     @QtCore.Slot(list)
-    def show_new_cards_message(self, new_cards):
+    def show_new_cards_message(self, new_cards: list):
+        """Show a system tray message for new cards found.
+
+        Args:
+            new_cards (list): List of new cards found.
+        """
         self.showMessage(
             "Hazbin Tracker",
             self.tracker.generate_new_cards_message(new_cards),
@@ -90,4 +115,5 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     @QtCore.Slot()
     def open_hazbin_website(self):
+        """Open the Hazbin website in the default web browser."""
         webbrowser.open_new_tab(HAZBIN_WEBSITE_URL)

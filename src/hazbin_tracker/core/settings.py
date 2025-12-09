@@ -6,12 +6,15 @@ LOGGER = logging.getLogger(__name__)
 
 
 class HazbinSettings(QtCore.QObject):
+    """QSettings manager for Hazbin Tracker application."""
+
     TRACKER_CHECK_FREQUENCY_MINIMUM = 1
     TRACKER_CHECK_FREQUENCY_DEFAULT = 60
 
     tracker_frequency_changed = QtCore.Signal(int)
 
     def __init__(self):
+        """Instance constructor."""
         super().__init__()
         self._settings = QtCore.QSettings(
             str(SETTINGS_FILE_PATH), QtCore.QSettings.IniFormat
@@ -20,6 +23,7 @@ class HazbinSettings(QtCore.QObject):
 
     @QtCore.Slot()
     def sync(self):
+        """Sync settings to disk."""
         self._settings.sync()
 
     # ----------------------
@@ -28,6 +32,7 @@ class HazbinSettings(QtCore.QObject):
 
     @property
     def pushover_enabled(self) -> bool:
+        """Get whether Pushover notifications are enabled."""
         return self._settings.value("pushover/enabled", defaultValue=False, type=bool)
 
     @pushover_enabled.setter
@@ -37,6 +42,7 @@ class HazbinSettings(QtCore.QObject):
 
     @property
     def pushover_user_key(self) -> str:
+        """Get the Pushover user key."""
         return self._settings.value("pushover/user_key", defaultValue="", type=str)
 
     @pushover_user_key.setter
@@ -46,6 +52,7 @@ class HazbinSettings(QtCore.QObject):
 
     @property
     def pushover_app_key(self) -> str:
+        """Get the Pushover application key."""
         return self._settings.value("pushover/app_key", defaultValue="", type=str)
 
     @pushover_app_key.setter
@@ -55,6 +62,7 @@ class HazbinSettings(QtCore.QObject):
 
     @property
     def tracker_check_minute_frequency(self) -> int:
+        """Get the tracker check frequency in minutes."""
         return self._settings.value(
             "tracker/check_frequency",
             defaultValue=self.TRACKER_CHECK_FREQUENCY_DEFAULT,

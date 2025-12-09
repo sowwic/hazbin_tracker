@@ -17,6 +17,7 @@ def main():
         app = HazbinTrackerApplication(sys.argv)
         sys.exit(app.exec())
     except Exception as err:
+        """Handle exceptions during application startup."""
         LOGGER.exception("App crash due to Exception.")
         msg = QMessageBox()
         msg.setWindowTitle("HazbinTracker Exception")
