@@ -4,17 +4,26 @@ from hazbin_tracker.core.constants import APP_DATA_DIR, DEBUG
 
 
 class HazbinLogger(logging.Logger):
+    """Logger for Hazbin Tracker application."""
+
     LOG_FILE_PATH = str(APP_DATA_DIR / "hazbin.log")
     FILE_LEVEL = logging.WARNING
     STD_OUT_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
     FILE_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 
     def __init__(self, name, level=logging.INFO):
+        """Initialize the HazbinLogger instance.
+
+        Args:
+            name (str): Name of the logger.
+            level (int, optional): Logging level. Defaults to logging.INFO.
+        """
         level = logging.DEBUG if DEBUG else level
         super().__init__(name, level)
         self.init_handlers()
 
     def init_handlers(self):
+        """Initialize logging handlers."""
         if self.hasHandlers():
             return
 

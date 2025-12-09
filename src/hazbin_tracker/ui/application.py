@@ -24,9 +24,16 @@ LOGGER = logging.getLogger(__name__)
 
 
 class HazbinTrackerApplication(QtWidgets.QApplication):
+    """Main application class for Hazbin Tracker."""
+
     LOCK_FILE = pathlib.Path(QtCore.QDir.tempPath()) / "hazbin_tracker.lock"
 
     def __init__(self, argv):
+        """Instance constructor.
+
+        Args:
+            argv (list): Command line arguments.
+        """
         super().__init__(argv)
         self.lock_check()
 
@@ -47,6 +54,7 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
         self.cards_tracker.start_periodic_check_timer()
 
     def _setup_pushover(self):
+        """Set up Pushover notifications based on settings."""
         if not self.settings.pushover_enabled:
             self.settings.pushover_enabled = False
             return
@@ -60,12 +68,14 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
 
     @QtCore.Slot()
     def show_settings_dialog(self):
+        """Show the settings dialog."""
         dialog = SettingsDialog(self.settings, parent=self.main_window)
         dialog.center_on_screen()
         dialog.raise_()
         dialog.exec()
 
     def lock_check(self):
+        """Check for existing application instance using a lock file."""
         self.lock_file = QtCore.QLockFile(self.LOCK_FILE.as_posix())
         self.lock_file.setStaleLockTime(0)
 

@@ -46,3 +46,6 @@ lint.ignore = [
     "D104",
     "D103",
 ]
+
+[tool.pytest.ini_options]
+addopts = "--cov=hazbin_tracker --cov-report=term-missing"

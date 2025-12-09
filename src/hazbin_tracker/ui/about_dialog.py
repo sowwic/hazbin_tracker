@@ -4,7 +4,14 @@ from ..core.constants import AUTHOR_NAME, RELEASE_YEAR
 
 
 class AboutDialog(QtWidgets.QDialog):
-    def __init__(self, parent=None):
+    """About dialog for Hazbin Tracker application."""
+
+    def __init__(self, parent: QtCore.QObject = None):
+        """Instance constructor.
+
+        Args:
+            parent (QtCore.QObject, optional): Parent widget. Defaults to None.
+        """
         super().__init__(parent)
         self.setWindowTitle("About Hazbin Tracker")
         # Remove "?" button
@@ -40,6 +47,7 @@ class AboutDialog(QtWidgets.QDialog):
         self.center_on_screen()
 
     def center_on_screen(self):
+        """Center the dialog on the screen."""
         screen_geometry = QtWidgets.QApplication.primaryScreen().availableGeometry()
         x = (screen_geometry.width() - self.width()) // 2
         y = (screen_geometry.height() - self.height()) // 2
