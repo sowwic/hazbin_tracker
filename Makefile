@@ -43,6 +43,12 @@ pytest:
 	$(call banner, Running pytest...)
 	@poetry run pytest tests
 
+pytest-pdb:
+	$(call banner, Cleaning pytest output dir...)
+	@rm -rf $(TEST_OUTPUT_DIR)
+	$(call banner, Running pytest with pdb...)
+	@poetry run pytest --pdb tests
+
 check: lint pytest
 
 qrc:

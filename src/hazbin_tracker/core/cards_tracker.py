@@ -18,12 +18,19 @@ LOGGER = logging.getLogger(__name__)
 
 
 class CardsTracker(QtCore.QObject):
+    """Tracker class to monitor Hazbin cards for new releases."""
+
     TRACK_FILE_NAME = "track_data.json"
     cards_updated = QtCore.Signal()
     check_time_updated = QtCore.Signal()
     new_cards_found = QtCore.Signal(list)
 
     def __repr__(self):
+        """Repr override.
+
+        Returns:
+            str: string representation
+        """
         return (
             f"<CardsTracker last_check_time={self.nice_last_checked_time},"
             " cards_count="
@@ -32,6 +39,7 @@ class CardsTracker(QtCore.QObject):
         )
 
     def __init__(self):
+        """Instance constructor."""
         super().__init__()
         self._last_check_time = None
         self._cards_data = None
@@ -52,6 +60,7 @@ class CardsTracker(QtCore.QObject):
 
     @property
     def cards_data(self):
+        """Get cards data."""
         return self._cards_data
 
     @cards_data.setter
@@ -61,6 +70,11 @@ class CardsTracker(QtCore.QObject):
 
     @property
     def last_check_time(self):
+        """Get last check time.
+
+        Returns:
+            datetime.datetime: last check time
+        """
         return self._last_check_time
 
     @last_check_time.setter
@@ -70,20 +84,36 @@ class CardsTracker(QtCore.QObject):
 
     @property
     def nice_last_checked_time(self):
+        """Get nicely formatted last checked time.
+
+        Returns:
+            str: nicely formatted last checked time
+        """
         if not self.last_check_time:
             return "Never"
         return self.last_check_time.strftime("%d-%m-%Y at %H:%M:%S")
 
     @property
     def track_file_path(self) -> pathlib.Path:
+        """Get the path to the track file.
+
+        Returns:
+            pathlib.Path: path to the track file
+        """
         return APP_DATA_DIR / self.TRACK_FILE_NAME
 
     @property
     def application(self):
+        """Get the main application instance.
+
+        Returns:
+            HazbinTrackerApplication: main application instance
+        """
         app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
         return app
 
     def start_periodic_check_timer(self):
+        """Start the periodic check timer."""
         LOGGER.debug("Starting check timer...")
         if self._check_timer.isActive():
             self._check_timer.stop()
@@ -94,6 +124,11 @@ class CardsTracker(QtCore.QObject):
         LOGGER.debug(f"Check Timer: {self._check_timer.interval()}ms")
 
     def run_check(self) -> list[dict]:
+        """Run a check for new cards.
+
+        Returns:
+            list[dict]: list of new cards found
+        """
         LOGGER.info("Running cards check...")
         source_cards = get_all_cards()
 
@@ -112,6 +147,7 @@ class CardsTracker(QtCore.QObject):
         return new_cards
 
     def populate_cards_data(self):
+        """Populate cards data from cache or source."""
         LOGGER.debug("Populating tracker cards data")
         try:
             self.fetch_cards_data_from_cache()
@@ -121,6 +157,7 @@ class CardsTracker(QtCore.QObject):
             self.create_cache()
 
     def fetch_cards_data_from_cache(self):
+        """Fetch cards data from cache file."""
         LOGGER.debug("Loading cards from cache")
         with self.track_file_path.open() as cache_file:
             cache_data = json.load(cache_file)
@@ -133,11 +170,13 @@ class CardsTracker(QtCore.QObject):
         LOGGER.debug(f"Loaded {len(self._cards_data)} cards from {self.track_file_path}")
 
     def fetch_cards_data_from_source(self):
+        """Fetch cards data from source."""
         LOGGER.debug("Fetching cards data from source")
         self._cards_data = get_all_cards()
         self.record_time()
 
     def create_cache(self):
+        """Create cache file with current cards data and last check time."""
         LOGGER.debug("Creating cache")
         cache_content = {
             "last_check_time": self.last_check_time.isoformat(),
@@ -147,6 +186,12 @@ class CardsTracker(QtCore.QObject):
             json.dump(cache_content, cache_file, indent=4)
 
     def record_time(self, time_override: datetime.datetime = None):
+        """Record the current time as last check time.
+
+        Args:
+            time_override (datetime.datetime, optional): time to set as last check time.
+                Defaults to None, which uses the current time.
+        """
         LOGGER.debug("Recording time...")
         new_time = (
             time_override if time_override else datetime.datetime.now(datetime.UTC)
@@ -155,6 +200,13 @@ class CardsTracker(QtCore.QObject):
         LOGGER.debug(f"Recorded time: {self.last_check_time}")
 
     def generate_new_cards_message(self, new_cards: list[dict]) -> str:
+        """Generate a message for new cards found.
+
+        Args:
+            new_cards (list[dict]): list of new cards found
+        Returns:
+            str: generated message
+        """
         LOGGER.debug("Generating new cards message...")
         message = f"Found {len(new_cards)} new Hazbin cards:"
         for card in new_cards:
@@ -162,6 +214,11 @@ class CardsTracker(QtCore.QObject):
         return message
 
     def on_new_cards_found(self, new_cards: list):
+        """Handle new cards found event.
+
+        Args:
+            new_cards (list): list of new cards found
+        """
         if not self.application.settings.pushover_enabled:
             LOGGER.debug("Push notifications are disabled, skipping...")
             return
