@@ -49,6 +49,10 @@ pytest-pdb:
 	$(call banner, Running pytest with pdb...)
 	@poetry run pytest --pdb tests
 
+mkdocs:
+	$(call banner, Building MkDocs documentation...)
+	@poetry run mkdocs serve
+
 check: lint pytest
 
 qrc:

@@ -1,0 +1,30 @@
+site_name: Hazbin Tracker Documentation
+site_description: Documentation for Tracker for Hazbin Hotel trading cards releases.
+site_author: Dmitrii Shevchenko
+theme:
+  name: material
+
+plugins:
+  - search
+  - mkdocs-autoapi:
+      autoapi_dir: "src/hazbin_tracker"
+      autoapi_ignore:
+        - "**/version.py"
+        - "**/hooks-pyside6.py"
+        - "**/main.py"
+        - "**/constants.py"
+      autoapi_file_patterns:
+        - "*.py"
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["src/hazbin_tracker"]
+          options:
+            docstring_style: google
+            show_signature: true
+            show_source: true
+  - autorefs
+
+nav:
+  - User Guide: user/getting_started.md
+  - Developer Guide: dev/setup.md
