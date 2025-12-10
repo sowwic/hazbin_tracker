@@ -1,6 +1,11 @@
 hazbin-tracker
 ==============
 
+v 1.0.4
+-------
+
+* (#18) Add check history file record and dialog
+
 v 1.0.3
 -------
 
