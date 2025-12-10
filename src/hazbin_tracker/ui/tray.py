@@ -4,6 +4,7 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 from .about_dialog import AboutDialog
+from .check_history_dialog import CheckHistoryDialog
 from ..core.constants import APPLICATION_TITLE, HAZBIN_WEBSITE_URL
 
 if typing.TYPE_CHECKING:
@@ -24,6 +25,7 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
         self.last_check_info_action = self.addAction("Last checked: Never")
         self.last_check_info_action.setEnabled(False)
         self.check_for_updates_action = self.addAction("Check for New Cards")
+        self.history_action = self.addAction("History...")
         self.settings_action = self.addAction("Settings...")
         self.about_action = self.addAction("About...")
         self.addSeparator()
@@ -33,6 +35,7 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
         self.update_last_checked_action()
 
         # Signals
+        self.history_action.triggered.connect(self.show_history_dialog)
         self.tracker.check_time_updated.connect(self.update_last_checked_action)
         self.settings_action.triggered.connect(
             self.tracker.application.show_settings_dialog
@@ -41,15 +44,20 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
         self.exit_action.triggered.connect(QtWidgets.QApplication.quit)
 
     @property
+    def application(self) -> "HazbinTrackerApplication":
+        """Get the HazbinTrackerApplication instance."""
+        app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
+        return app
+
+    @property
     def tracker(self) -> "CardsTracker":
         """Get the CardsTracker instance from the application."""
-        app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
-        return app.cards_tracker
+        return self.application.cards_tracker
 
     @QtCore.Slot()
     def show_about_dialog(self):
         """Show the About dialog."""
-        dialog = AboutDialog(self)
+        dialog = AboutDialog(self.application.main_window)
         dialog.exec()
 
     @QtCore.Slot()
@@ -58,6 +66,12 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
         self.last_check_info_action.setText(
             f"Last checked: {self.tracker.nice_last_checked_time}"
         )
+
+    @QtCore.Slot()
+    def show_history_dialog(self):
+        """Show the check history dialog."""
+        dialog = CheckHistoryDialog(self.application.main_window)
+        dialog.exec()
 
 
 class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):

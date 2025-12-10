@@ -10,6 +10,8 @@ class HazbinSettings(QtCore.QObject):
 
     TRACKER_CHECK_FREQUENCY_MINIMUM = 1
     TRACKER_CHECK_FREQUENCY_DEFAULT = 60
+    CHECK_HISTORY_SIZE_DEFAULT = 50
+    CHECK_HISTORY_SIZE_MINIMUM = 10
 
     tracker_frequency_changed = QtCore.Signal(int)
 
@@ -60,6 +62,7 @@ class HazbinSettings(QtCore.QObject):
         self._settings.setValue("pushover/app_key", value)
         LOGGER.debug(f"Pushover app key set: {value}")
 
+    # ----------------------  Tracker ----------------------
     @property
     def tracker_check_minute_frequency(self) -> int:
         """Get the tracker check frequency in minutes."""
@@ -79,3 +82,27 @@ class HazbinSettings(QtCore.QObject):
         self._settings.setValue("tracker/check_frequency", value)
         LOGGER.info(f"Check frequency set to: {value}min")
         self.tracker_frequency_changed.emit(value)
+
+    @property
+    def check_history_size(self) -> int:
+        """Get the size of the check history.
+
+        Returns:
+            int: number of entries in the check history
+        """
+        return self._settings.value(
+            "tracker/check_history_size",
+            defaultValue=self.CHECK_HISTORY_SIZE_DEFAULT,
+            type=int,
+        )
+
+    @check_history_size.setter
+    def check_history_size(self, value: int):
+        if value < self.CHECK_HISTORY_SIZE_MINIMUM:
+            LOGGER.warning(
+                "Check history size can't be less "
+                f"than {self.CHECK_HISTORY_SIZE_MINIMUM}"
+            )
+            value = self.CHECK_HISTORY_SIZE_MINIMUM
+        self._settings.setValue("tracker/check_history_size", value)
+        LOGGER.info(f"Check history size set to: {value}")
