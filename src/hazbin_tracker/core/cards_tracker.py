@@ -9,7 +9,7 @@ from PySide6 import QtCore
 from PySide6 import QtWidgets
 
 from .scrapper import get_all_cards
-from .constants import APP_DATA_DIR
+from .constants import APP_DATA_DIR, CHECK_HISTORY_FILE_PATH
 
 if typing.TYPE_CHECKING:
     from ..ui.application import HazbinTrackerApplication
@@ -24,6 +24,7 @@ class CardsTracker(QtCore.QObject):
     cards_updated = QtCore.Signal()
     check_time_updated = QtCore.Signal()
     new_cards_found = QtCore.Signal(list)
+    check_completed = QtCore.Signal(list)
 
     def __repr__(self):
         """Repr override.
@@ -56,6 +57,7 @@ class CardsTracker(QtCore.QObject):
         self.application.settings.tracker_frequency_changed.connect(
             self.start_periodic_check_timer
         )
+        self.check_completed.connect(self.record_check_result)
         LOGGER.info(f"Started tracker: {self}")
 
     @property
@@ -142,6 +144,7 @@ class CardsTracker(QtCore.QObject):
         self.cards_data = source_cards
         self.record_time()
         self.create_cache()
+        self.check_completed.emit(new_cards)
         if new_cards:
             self.new_cards_found.emit(new_cards)
         return new_cards
@@ -243,3 +246,29 @@ class CardsTracker(QtCore.QObject):
             LOGGER.exception(
                 "Failed to send Pushover notification due to unhandled error."
             )
+
+    def record_check_result(self, new_cards: list[dict]):
+        """Record the result of a check.
+
+        Args:
+            new_cards (list[dict]): list of new cards found
+        """
+        record = {
+            "timestamp": self.nice_last_checked_time,
+            "new_cards": new_cards,
+        }
+        if CHECK_HISTORY_FILE_PATH.exists():
+            try:
+                history = json.loads(CHECK_HISTORY_FILE_PATH.read_text())
+            except Exception:
+                LOGGER.warning("Failed to read check history file, starting fresh.")
+                history = []
+        else:
+            history = []
+
+        history.append(record)
+
+        # Trim history if it exceeds the maximum size
+        history = history[-self.application.settings.check_history_size :]
+        CHECK_HISTORY_FILE_PATH.write_text(json.dumps(history, indent=4))
+        LOGGER.debug(f"Recorded check result to history: {CHECK_HISTORY_FILE_PATH}")
