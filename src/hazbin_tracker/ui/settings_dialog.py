@@ -1,6 +1,8 @@
 import typing
 from PySide6 import QtWidgets
 
+from .pyside_utils import center_dialog_on_screen
+
 if typing.TYPE_CHECKING:
     from ..core.settings import HazbinSettings
 
@@ -23,6 +25,8 @@ class SettingsDialog(QtWidgets.QDialog):
         # --- Tracker Section ---
         self.tracker_group = QtWidgets.QGroupBox("Tracker")
         tracker_group_layout = QtWidgets.QFormLayout()
+
+        # Tracker check frequency
         self.tracker_check_frequency_spinbox = QtWidgets.QSpinBox()
         self.tracker_check_frequency_spinbox.setButtonSymbols(
             QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons
@@ -37,6 +41,17 @@ class SettingsDialog(QtWidgets.QDialog):
         tracker_group_layout.addRow(
             "Check Frequency (min):", self.tracker_check_frequency_spinbox
         )
+
+        self.check_history_size = QtWidgets.QSpinBox()
+        self.check_history_size.setButtonSymbols(
+            QtWidgets.QAbstractSpinBox.ButtonSymbols.NoButtons
+        )
+        self.check_history_size.setValue(self.settings.check_history_size)
+        self.check_history_size.setMinimum(self.settings.CHECK_HISTORY_SIZE_MINIMUM)
+        self.check_history_size.setMinimumWidth(50)
+        self.check_history_size.setToolTip("Number of check history entries to keep.")
+        tracker_group_layout.addRow("Check History Size:", self.check_history_size)
+
         self.tracker_group.setLayout(tracker_group_layout)
 
         # --- Pushover Section ---
@@ -71,6 +86,8 @@ class SettingsDialog(QtWidgets.QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
+        center_dialog_on_screen(self)
+
     def accept(self):
         """Save changes to settings."""
         self.settings.pushover_enabled = self.pushover_group.isChecked()
@@ -79,13 +96,7 @@ class SettingsDialog(QtWidgets.QDialog):
         self.settings.tracker_check_minute_frequency = (
             self.tracker_check_frequency_spinbox.value()
         )
+        self.settings.check_history_size = self.check_history_size.value()
 
         self.settings.sync()  # write to disk
         super().accept()
-
-    def center_on_screen(self):
-        """Center the dialog on the screen."""
-        screen_geometry = QtWidgets.QApplication.primaryScreen().availableGeometry()
-        x = (screen_geometry.width() - self.width()) // 2
-        y = (screen_geometry.height() - self.height()) // 2
-        self.move(x, y)

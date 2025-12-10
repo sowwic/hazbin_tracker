@@ -18,6 +18,7 @@ from ..core.cards_tracker import CardsTracker
 from .tray import HazbinTrackerSystemTrayIcon
 from ..core.settings import HazbinSettings
 from ..ui.settings_dialog import SettingsDialog
+from .pyside_utils import center_dialog_on_screen
 
 
 LOGGER = logging.getLogger(__name__)
@@ -44,6 +45,7 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
 
         self.settings = HazbinSettings()
         self.main_window = QtWidgets.QMainWindow()
+        center_dialog_on_screen(self.main_window)
         self.main_window.hide()
         self._setup_pushover()
 
@@ -70,7 +72,7 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
     def show_settings_dialog(self):
         """Show the settings dialog."""
         dialog = SettingsDialog(self.settings, parent=self.main_window)
-        dialog.center_on_screen()
+        center_dialog_on_screen(dialog)
         dialog.raise_()
         dialog.exec()
 

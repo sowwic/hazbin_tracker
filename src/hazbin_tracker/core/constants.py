@@ -30,3 +30,4 @@ APP_DATA_DIR = pathlib.Path(
 )
 
 SETTINGS_FILE_PATH = APP_DATA_DIR / "settings.ini"
+CHECK_HISTORY_FILE_PATH = APP_DATA_DIR / "check_history.json"

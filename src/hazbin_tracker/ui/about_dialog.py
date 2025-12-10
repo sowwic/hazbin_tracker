@@ -1,6 +1,7 @@
 from PySide6 import QtWidgets, QtGui, QtCore
 
 from ..core.constants import AUTHOR_NAME, RELEASE_YEAR
+from .pyside_utils import center_dialog_on_screen
 
 
 class AboutDialog(QtWidgets.QDialog):
@@ -44,11 +45,4 @@ class AboutDialog(QtWidgets.QDialog):
         info_label.setAlignment(QtCore.Qt.AlignCenter)
         layout.addWidget(info_label)
 
-        self.center_on_screen()
-
-    def center_on_screen(self):
-        """Center the dialog on the screen."""
-        screen_geometry = QtWidgets.QApplication.primaryScreen().availableGeometry()
-        x = (screen_geometry.width() - self.width()) // 2
-        y = (screen_geometry.height() - self.height()) // 2
-        self.move(x, y)
+        center_dialog_on_screen(self)
