@@ -1,6 +1,11 @@
 hazbin-tracker
 ==============
 
+v 1.0.5
+-------
+
+* (#17) Add basic user and dev documentations
+
 v 1.0.4
 -------
 

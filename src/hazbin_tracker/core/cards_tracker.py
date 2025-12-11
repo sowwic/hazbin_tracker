@@ -266,9 +266,9 @@ class CardsTracker(QtCore.QObject):
         else:
             history = []
 
-        history.append(record)
+        history.insert(0, record)
 
         # Trim history if it exceeds the maximum size
-        history = history[-self.application.settings.check_history_size :]
+        history = history[: self.application.settings.check_history_size]
         CHECK_HISTORY_FILE_PATH.write_text(json.dumps(history, indent=4))
         LOGGER.debug(f"Recorded check result to history: {CHECK_HISTORY_FILE_PATH}")

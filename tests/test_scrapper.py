@@ -3,8 +3,10 @@ import logging
 import json
 import pathlib
 
-from hazbin_tracker.api import HAZBIN_CARDS_PRODUCTS_JSON_URL
-from hazbin_tracker.api import DEFAULT_SORT_KEY
+from hazbin_tracker.core.constants import (
+    HAZBIN_CARDS_PRODUCTS_JSON_URL,
+    DEFAULT_SORT_KEY,
+)
 from hazbin_tracker.core.scrapper import get_all_cards
 
 logging.basicConfig(level=logging.DEBUG)

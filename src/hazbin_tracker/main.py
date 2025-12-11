@@ -11,7 +11,7 @@ LOGGER.setLevel(logging.INFO)
 
 
 def main():
-    from hazbin_tracker.api import HazbinTrackerApplication
+    from hazbin_tracker.ui.application import HazbinTrackerApplication
 
     try:
         app = HazbinTrackerApplication(sys.argv)
