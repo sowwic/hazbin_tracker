@@ -49,6 +49,10 @@ pytest-pdb:
 	$(call banner, Running pytest with pdb...)
 	@poetry run pytest --pdb tests
 
+mkdocs:
+	$(call banner, Building MkDocs documentation...)
+	@poetry run mkdocs serve
+
 check: lint pytest
 
 qrc:
@@ -56,7 +60,7 @@ qrc:
 	@pyside6-rcc resources/resources.qrc -o resources/resources_rc.py
 	@printf "$(GREEN)QRC generation complete.$(RESET)\n"
 
-app: update-version
+app:
 	$(call banner, Building $(APP_NAME)...)
 	@pyinstaller HazbinTracker.spec
 
