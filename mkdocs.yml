@@ -12,7 +12,6 @@ plugins:
         - "**/version.py"
         - "**/hooks-pyside6.py"
         - "**/main.py"
-        - "**/constants.py"
       autoapi_file_patterns:
         - "*.py"
   - mkdocstrings:
@@ -23,8 +22,14 @@ plugins:
             docstring_style: google
             show_signature: true
             show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_object_full_path: false
+            show_category_heading: true
+            merge_init_into_class: true
+            show_if_no_docstring: true
   - autorefs
 
 nav:
-  - User Guide: user/getting_started.md
-  - Developer Guide: dev/setup.md
+  - User Guide: user/index.md
+  - Developer Guide: dev/index.md
