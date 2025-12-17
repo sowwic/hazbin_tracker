@@ -1,6 +1,6 @@
 [project]
 name = "hazbin-tracker"
-version = "1.0.5"
+version = "1.0.6"
 description = "Hazbin hotel cards release tracker"
 authors = [
     {name = "Dmitrii Shevchenko",email = "47799401+sowwic@users.noreply.github.com"}
