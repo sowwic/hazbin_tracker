@@ -1,6 +1,11 @@
 hazbin-tracker
 ==============
 
+v 1.0.6
+-------
+
+* (#26) Add last publish track info to history dialog
+
 v 1.0.5
 -------
 
