@@ -21,6 +21,8 @@ class CardsTracker(QtCore.QObject):
     """Tracker class to monitor Hazbin cards for new releases."""
 
     TRACK_FILE_NAME = "track_data.json"
+    NICE_TIME_FORMAT = "%d-%m-%Y at %H:%M:%S"
+
     cards_updated = QtCore.Signal()
     check_time_updated = QtCore.Signal()
     new_cards_found = QtCore.Signal(list)
@@ -93,7 +95,7 @@ class CardsTracker(QtCore.QObject):
         """
         if not self.last_check_time:
             return "Never"
-        return self.last_check_time.strftime("%d-%m-%Y at %H:%M:%S")
+        return self.last_check_time.strftime(self.NICE_TIME_FORMAT)
 
     @property
     def track_file_path(self) -> pathlib.Path:
@@ -113,6 +115,33 @@ class CardsTracker(QtCore.QObject):
         """
         app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
         return app
+
+    @property
+    def latest_publish_time(self) -> datetime.datetime:
+        """Get the latest published card time.
+
+        Returns:
+            datetime.datetime: latest published card time
+        """
+        if not self.cards_data:
+            return None
+        latest_time = max(
+            datetime.datetime.fromisoformat(card["published_at"])
+            for card in self.cards_data
+        )
+        return latest_time
+
+    @property
+    def nice_latest_publish_time(self) -> str:
+        """Get nicely formatted latest published card time.
+
+        Returns:
+            str: nicely formatted latest published card time
+        """
+        latest_time = self.latest_publish_time
+        if not latest_time:
+            return "N/A"
+        return latest_time.strftime(self.NICE_TIME_FORMAT)
 
     def start_periodic_check_timer(self):
         """Start the periodic check timer."""
