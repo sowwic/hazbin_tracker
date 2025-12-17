@@ -49,12 +49,15 @@ class CardsTracker(QtCore.QObject):
 
         # Timer
         self._check_timer = QtCore.QTimer(self)
-        self._check_timer.timeout.connect(self.run_check)
 
         # Initial data
         self.populate_cards_data()
+        self._create_signals()
+        LOGGER.info(f"Started tracker: {self}")
 
-        # Signals
+    def _create_signals(self):
+        """Create signals and connect them."""
+        self._check_timer.timeout.connect(self.run_check)
         self.new_cards_found.connect(self.on_new_cards_found)
         self.application.settings.tracker_frequency_changed.connect(
             self.start_periodic_check_timer
@@ -199,7 +202,9 @@ class CardsTracker(QtCore.QObject):
                 cache_data.get("last_check_time")
             )
         )
-        LOGGER.debug(f"Loaded {len(self._cards_data)} cards from {self.track_file_path}")
+        LOGGER.debug(
+            f"Loaded {len(self._cards_data)} cards from {self.track_file_path}"
+        )
 
     def fetch_cards_data_from_source(self):
         """Fetch cards data from source."""
