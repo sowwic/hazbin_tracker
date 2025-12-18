@@ -202,9 +202,7 @@ class CardsTracker(QtCore.QObject):
                 cache_data.get("last_check_time")
             )
         )
-        LOGGER.debug(
-            f"Loaded {len(self._cards_data)} cards from {self.track_file_path}"
-        )
+        LOGGER.debug(f"Loaded {len(self._cards_data)} cards from {self.track_file_path}")
 
     def fetch_cards_data_from_source(self):
         """Fetch cards data from source."""
