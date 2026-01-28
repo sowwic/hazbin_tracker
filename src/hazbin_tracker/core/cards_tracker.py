@@ -146,6 +146,28 @@ class CardsTracker(QtCore.QObject):
             return "N/A"
         return latest_time.strftime(self.NICE_TIME_FORMAT)
 
+    @property
+    def latest_published_cards(self) -> list[dict]:
+        """Get cards with the latest published time.
+
+        Returns:
+            list[dict]: list of cards published at the latest time
+        """
+        if not self.cards_data:
+            return []
+
+        latest_time = self.latest_publish_time
+        if not latest_time:
+            return []
+
+        latest_cards = [
+            card
+            for card in self.cards_data
+            if datetime.datetime.fromisoformat(card["published_at"]) == latest_time
+        ]
+
+        return latest_cards
+
     def start_periodic_check_timer(self):
         """Start the periodic check timer."""
         LOGGER.debug("Starting check timer...")
