@@ -1,6 +1,12 @@
 hazbin-tracker
 ==============
 
+v 1.0.7
+-------
+
+* (#30) Add tooltip to latest publish label in history dialog
+* (#11) Add unit test for tracker
+
 v 1.0.6
 -------
 

@@ -9,6 +9,8 @@ from .constants import (
 
 LOGGER = logging.getLogger(__name__)
 
+PRODUCT_TITLE_PREFIX = "Hazbin Hotel Trading Cards"
+
 
 def get_all_products() -> list[dict]:
     """Get all products from the Hazbin Hotel trading cards collection.
@@ -44,4 +46,9 @@ def get_all_cards() -> list[dict]:
         list[dict]: A list of sorted cards dictionaries.
     """
     products = get_all_products()
+    for product in products:
+        title = product.get("title")
+        if isinstance(title, str) and title.startswith(PRODUCT_TITLE_PREFIX):
+            product["title"] = title.split(PRODUCT_TITLE_PREFIX, maxsplit=1)[-1].strip()
+
     return sorted(products, key=lambda x: x[DEFAULT_SORT_KEY], reverse=True)

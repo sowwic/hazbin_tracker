@@ -49,12 +49,15 @@ class CardsTracker(QtCore.QObject):
 
         # Timer
         self._check_timer = QtCore.QTimer(self)
-        self._check_timer.timeout.connect(self.run_check)
 
         # Initial data
         self.populate_cards_data()
+        self._create_signals()
+        LOGGER.info(f"Started tracker: {self}")
 
-        # Signals
+    def _create_signals(self):
+        """Create signals and connect them."""
+        self._check_timer.timeout.connect(self.run_check)
         self.new_cards_found.connect(self.on_new_cards_found)
         self.application.settings.tracker_frequency_changed.connect(
             self.start_periodic_check_timer
@@ -142,6 +145,28 @@ class CardsTracker(QtCore.QObject):
         if not latest_time:
             return "N/A"
         return latest_time.strftime(self.NICE_TIME_FORMAT)
+
+    @property
+    def latest_published_cards(self) -> list[dict]:
+        """Get cards with the latest published time.
+
+        Returns:
+            list[dict]: list of cards published at the latest time
+        """
+        if not self.cards_data:
+            return []
+
+        latest_time = self.latest_publish_time
+        if not latest_time:
+            return []
+
+        latest_cards = [
+            card
+            for card in self.cards_data
+            if datetime.datetime.fromisoformat(card["published_at"]) == latest_time
+        ]
+
+        return latest_cards
 
     def start_periodic_check_timer(self):
         """Start the periodic check timer."""
