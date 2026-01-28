@@ -102,6 +102,13 @@ class CheckHistoryDialog(QtWidgets.QDialog):
         self._latest_publish_label.setText(
             f"Latest Publish: <b>{latest_publish_time}</b>"
         )
+        publish_details_tooltip = "No new cards published."
+        latest_cards = self.application().cards_tracker.latest_published_cards
+        if latest_cards:
+            publish_details_tooltip = "<br>".join(
+                [card["title"] for card in latest_cards]
+            )
+        self._latest_publish_label.setToolTip(publish_details_tooltip)
 
     @QtCore.Slot()
     def refresh_history(self):
