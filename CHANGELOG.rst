@@ -1,6 +1,11 @@
 hazbin-tracker
 ==============
 
+v 1.0.8
+-------
+
+* (#34) Turn api keys LineEdits into password like fields Fixes
+
 v 1.0.7
 -------
 
