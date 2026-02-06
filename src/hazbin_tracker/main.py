@@ -23,7 +23,7 @@ def main():
         msg.setWindowTitle("HazbinTracker Exception")
         msg.setText("Application failed to start due to an exception.")
         msg.setDetailedText(str(err))
-        msg.setIcon(QMessageBox.Critical)
+        msg.setIcon(QMessageBox.Icon.Critical)
         msg.exec()
 
         return 1

@@ -2,5 +2,7 @@
     <qresource prefix="/">
         <file>icons/hazbin.png</file>
         <file>icons/cards.png</file>
+        <file>icons/visibility_on.png</file>
+        <file>icons/visibility_off.png</file>
     </qresource>
 </RCC>

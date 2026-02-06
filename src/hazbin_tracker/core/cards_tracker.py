@@ -44,7 +44,7 @@ class CardsTracker(QtCore.QObject):
     def __init__(self):
         """Instance constructor."""
         super().__init__()
-        self._last_check_time = None
+        self._last_check_time: datetime.datetime | None = None
         self._cards_data = None
 
         # Timer
@@ -189,10 +189,13 @@ class CardsTracker(QtCore.QObject):
         source_cards = get_all_cards()
 
         new_cards = []
-        for card in source_cards:
-            cards_published_at = datetime.datetime.fromisoformat(card["published_at"])
-            if cards_published_at > self._last_check_time:
-                new_cards.append(card)
+        if self.last_check_time is not None:
+            for card in source_cards:
+                cards_published_at = datetime.datetime.fromisoformat(
+                    card["published_at"]
+                )
+                if cards_published_at > self._last_check_time:
+                    new_cards.append(card)
 
         LOGGER.info(f"Found {len(new_cards)} new cards.")
         self.cards_data = source_cards
@@ -242,7 +245,7 @@ class CardsTracker(QtCore.QObject):
         with self.track_file_path.open("w") as cache_file:
             json.dump(cache_content, cache_file, indent=4)
 
-    def record_time(self, time_override: datetime.datetime = None):
+    def record_time(self, time_override: datetime.datetime | None = None):
         """Record the current time as last check time.
 
         Args:

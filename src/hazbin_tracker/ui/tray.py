@@ -15,7 +15,7 @@ if typing.TYPE_CHECKING:
 class SystemTrayContextMenu(QtWidgets.QMenu):
     """System tray context menu for Hazbin Tracker."""
 
-    def __init__(self, parent: QtWidgets.QWidget = None):
+    def __init__(self, parent: QtWidgets.QWidget | None = None):
         """Instance constructor.
 
         Args:
@@ -77,7 +77,7 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
 class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
     """System tray icon for Hazbin Tracker."""
 
-    def __init__(self, icon, parent: QtWidgets.QWidget = None):
+    def __init__(self, icon, parent: QtWidgets.QWidget | None = None):
         """Instance constructor.
 
         Args:
@@ -109,7 +109,7 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
             self.showMessage(
                 "Hazbin Tracker",
                 "No new Hazbin cards found.",
-                QtWidgets.QSystemTrayIcon.NoIcon,
+                QtWidgets.QSystemTrayIcon.MessageIcon.NoIcon,
                 5000,
             )
 
@@ -123,7 +123,7 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.showMessage(
             "Hazbin Tracker",
             self.tracker.generate_new_cards_message(new_cards),
-            QtWidgets.QSystemTrayIcon.NoIcon,
+            QtWidgets.QSystemTrayIcon.MessageIcon.NoIcon,
             0,
         )
 
