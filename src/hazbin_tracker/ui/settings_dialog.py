@@ -2,6 +2,7 @@ import typing
 from PySide6 import QtWidgets
 
 from .pyside_utils import center_dialog_on_screen
+from .password_edit import PasswordLineEdit
 
 if typing.TYPE_CHECKING:
     from ..core.settings import HazbinSettings
@@ -10,7 +11,9 @@ if typing.TYPE_CHECKING:
 class SettingsDialog(QtWidgets.QDialog):
     """Settings dialog for Hazbin Tracker application."""
 
-    def __init__(self, settings: "HazbinSettings", parent: QtWidgets.QWidget = None):
+    def __init__(
+        self, settings: "HazbinSettings", parent: QtWidgets.QWidget | None = None
+    ):
         """Instance constructor.
 
         Args:
@@ -61,11 +64,10 @@ class SettingsDialog(QtWidgets.QDialog):
 
         pushover_group_layout = QtWidgets.QFormLayout()
 
-        self.user_key_edit = QtWidgets.QLineEdit(self.settings.pushover_user_key)
-        self.app_key_edit = QtWidgets.QLineEdit(self.settings.pushover_app_key)
-        for key_edit in [self.user_key_edit, self.app_key_edit]:
-            key_edit.setMinimumWidth(200)
-            key_edit.setToolTip(key_edit.text())
+        self.user_key_edit = PasswordLineEdit(
+            default_text=self.settings.pushover_user_key
+        )
+        self.app_key_edit = PasswordLineEdit(default_text=self.settings.pushover_app_key)
 
         pushover_group_layout.addRow("User Key:", self.user_key_edit)
         pushover_group_layout.addRow("App Key:", self.app_key_edit)
@@ -80,7 +82,8 @@ class SettingsDialog(QtWidgets.QDialog):
 
         # --- Dialog Buttons ---
         buttons = QtWidgets.QDialogButtonBox(
-            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
+            QtWidgets.QDialogButtonBox.StandardButton.Ok
+            | QtWidgets.QDialogButtonBox.StandardButton.Cancel
         )
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -91,8 +94,8 @@ class SettingsDialog(QtWidgets.QDialog):
     def accept(self):
         """Save changes to settings."""
         self.settings.pushover_enabled = self.pushover_group.isChecked()
-        self.settings.pushover_user_key = self.user_key_edit.text()
-        self.settings.pushover_app_key = self.app_key_edit.text()
+        self.settings.pushover_user_key = self.user_key_edit.text
+        self.settings.pushover_app_key = self.app_key_edit.text
         self.settings.tracker_check_minute_frequency = (
             self.tracker_check_frequency_spinbox.value()
         )
