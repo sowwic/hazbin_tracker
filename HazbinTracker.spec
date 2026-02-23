@@ -63,7 +63,7 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name='HazbinTracker.app',
-    icon='resources/icons/HazbinTracker.icns',
+    icon='src/hazbin_tracker/resources/icons/HazbinTracker.icns',
     bundle_identifier=None,
     info_plist={
         "CFBundleShortVersionString": app_version,  # shown in Finder

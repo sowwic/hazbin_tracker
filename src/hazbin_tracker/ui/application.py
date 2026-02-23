@@ -6,7 +6,7 @@ from PySide6 import (
     QtGui,
     QtWidgets,
 )
-import resources.resources_rc  # noqa: F401
+import hazbin_tracker.resources.resources_rc  # noqa: F401
 
 from hazbin_tracker.core.constants import (
     APPLICATION_TITLE,
