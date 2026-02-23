@@ -19,7 +19,15 @@ define banner
 	@printf "$(CYAN)==>$(RESET) $(1)\n"
 endef
 
-clean:
+.PHONY: help 
+help: ## Show this help message
+	@echo "Available make targets:"
+	@echo ""
+	@grep -E '^[a-zA-Z0-9_-]+:.*?##' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS=":.*?##"}; {printf "  %-15s %s\n", $$1, $$2}'
+	@echo ""
+
+.PHONY: clean
+clean: ## Clean up build artifacts and caches
 	$(call banner, Cleaning project...)
 	@rm -rf .pytest_cache
 	@rm -rf __pycache__
@@ -30,64 +38,74 @@ clean:
 	@rm -rf .test_output
 	@printf "$(GREEN)Clean up complete.$(RESET)\n"
 
-lint:
+.PHONY: lint
+lint:  ## Run the Ruff linter on source and test files
 	$(call banner, Running Ruff linter...)
 	@poetry run ruff check src tests || true
 
-format:
+.PHONY: format
+format:  ## Run the Ruff formatter on source and test files
 	$(call banner, Running Ruff formatter...)
 	@poetry run ruff format src tests
 
 .PHONY: pytest
-pytest:
+pytest:  ## Run pytest on the tests directory
 	$(call banner, Running pytest...)
 	@poetry run pytest tests
 
-pytest-pdb:
+.PHONY: pytest-cov
+pytest-pdb:  ## Run pytest with pdb on failure
 	$(call banner, Cleaning pytest output dir...)
 	@rm -rf $(TEST_OUTPUT_DIR)
 	$(call banner, Running pytest with pdb...)
 	@poetry run pytest --pdb tests
 
-mkdocs:
+.PHONY: mkdocs
+mkdocs:  ## Run MkDocs development server
 	$(call banner, Building MkDocs documentation...)
 	@poetry run mkdocs serve
 
-check: lint pytest
+.PHONY: check
+check: lint pytest. ## Run all checks (linting and testing)
 
-qrc:
+.PHONY: qrc
+qrc:  ## Generate QRC resources
 	$(call banner, Generating QRC resources...)
-	@pyside6-rcc resources/resources.qrc -o resources/resources_rc.py
+	@pyside6-rcc src/hazbin_tracker/resources/resources.qrc -o src/hazbin_tracker/resources/resources_rc.py
 	@printf "$(GREEN)QRC generation complete.$(RESET)\n"
 
-app:
+.PHONY: app
+app:  ## Build the application using PyInstaller
 	$(call banner, Building $(APP_NAME)...)
 	@pyinstaller HazbinTracker.spec
 
-update-version:
+.PHONY:update-version
+update-version:  ## Update the version in pyproject.toml to match the VERSION file
 	@VERSION=$$(cat VERSION); \
 	printf "$(CYAN)==>$(RESET) Updating pyproject.toml version to %s\n" "$$VERSION"; \
 	poetry version $$VERSION
 
-iconset:
+.PHONY: iconset
+iconset:  ## Generate the .icns iconset from the source PNG icon
 	$(call banner, Generating iconset...)
-	@mkdir -p resources/icons/HazbinTracker.iconset
-	@sips -z 16 16     resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_16x16.png
-	@sips -z 32 32     resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_16x16@2x.png
-	@sips -z 32 32     resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_32x32.png
-	@sips -z 64 64     resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_32x32@2x.png
-	@sips -z 128 128   resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_128x128.png
-	@sips -z 256 256   resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_128x128@2x.png
-	@sips -z 256 256   resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_256x256.png
-	@sips -z 512 512   resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_256x256@2x.png
-	@sips -z 512 512   resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_512x512.png
-	@sips -z 1024 1024 resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_512x512@2x.png
-	@iconutil -c icns resources/icons/HazbinTracker.iconset -o resources/icons/HazbinTracker.icns
+	@mkdir -p src/hazbin_tracker/resources/icons/HazbinTracker.iconset
+	@sips -z 16 16     src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_16x16.png
+	@sips -z 32 32     src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_16x16@2x.png
+	@sips -z 32 32     src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_32x32.png
+	@sips -z 64 64     src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_32x32@2x.png
+	@sips -z 128 128   src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_128x128.png
+	@sips -z 256 256   src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_128x128@2x.png
+	@sips -z 256 256   src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_256x256.png
+	@sips -z 512 512   src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_256x256@2x.png
+	@sips -z 512 512   src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_512x512.png
+	@sips -z 1024 1024 src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_512x512@2x.png
+	@iconutil -c icns src/hazbin_tracker/resources/icons/HazbinTracker.iconset -o src/hazbin_tracker/resources/icons/HazbinTracker.icns
 	@printf "$(YELLOW)Removing temp iconset files...$(RESET)\n"
-	@rm -rf resources/icons/HazbinTracker.iconset
+	@rm -rf src/hazbin_tracker/resources/icons/HazbinTracker.iconset
 	@printf "$(GREEN)Iconset generation complete.$(RESET)\n"
 
-install:
+.PHONY: install
+install:  ## Install the built application into the Applications directory
 	@VERSION=$$(cat VERSION); \
 	printf "$(CYAN)==>$(RESET) Installing $(APP_NAME) v%s into $(APPLICATIONS_DIR)...\n" "$$VERSION"; \
 	cp -R "$(APP_PATH)" "$(APPLICATIONS_DIR)/"; \
