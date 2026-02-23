@@ -71,7 +71,7 @@ check: lint pytest. ## Run all checks (linting and testing)
 .PHONY: qrc
 qrc:  ## Generate QRC resources
 	$(call banner, Generating QRC resources...)
-	@pyside6-rcc resources/resources.qrc -o resources/resources_rc.py
+	@pyside6-rcc src/hazbin_tracker/resources/resources.qrc -o src/hazbin_tracker/resources/resources_rc.py
 	@printf "$(GREEN)QRC generation complete.$(RESET)\n"
 
 .PHONY: app
@@ -88,20 +88,20 @@ update-version:  ## Update the version in pyproject.toml to match the VERSION fi
 .PHONY: iconset
 iconset:  ## Generate the .icns iconset from the source PNG icon
 	$(call banner, Generating iconset...)
-	@mkdir -p resources/icons/HazbinTracker.iconset
-	@sips -z 16 16     resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_16x16.png
-	@sips -z 32 32     resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_16x16@2x.png
-	@sips -z 32 32     resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_32x32.png
-	@sips -z 64 64     resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_32x32@2x.png
-	@sips -z 128 128   resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_128x128.png
-	@sips -z 256 256   resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_128x128@2x.png
-	@sips -z 256 256   resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_256x256.png
-	@sips -z 512 512   resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_256x256@2x.png
-	@sips -z 512 512   resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_512x512.png
-	@sips -z 1024 1024 resources/icons/hazbin.png --out resources/icons/HazbinTracker.iconset/icon_512x512@2x.png
-	@iconutil -c icns resources/icons/HazbinTracker.iconset -o resources/icons/HazbinTracker.icns
+	@mkdir -p src/hazbin_tracker/resources/icons/HazbinTracker.iconset
+	@sips -z 16 16     src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_16x16.png
+	@sips -z 32 32     src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_16x16@2x.png
+	@sips -z 32 32     src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_32x32.png
+	@sips -z 64 64     src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_32x32@2x.png
+	@sips -z 128 128   src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_128x128.png
+	@sips -z 256 256   src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_128x128@2x.png
+	@sips -z 256 256   src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_256x256.png
+	@sips -z 512 512   src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_256x256@2x.png
+	@sips -z 512 512   src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_512x512.png
+	@sips -z 1024 1024 src/hazbin_tracker/resources/icons/hazbin.png --out src/hazbin_tracker/resources/icons/HazbinTracker.iconset/icon_512x512@2x.png
+	@iconutil -c icns src/hazbin_tracker/resources/icons/HazbinTracker.iconset -o src/hazbin_tracker/resources/icons/HazbinTracker.icns
 	@printf "$(YELLOW)Removing temp iconset files...$(RESET)\n"
-	@rm -rf resources/icons/HazbinTracker.iconset
+	@rm -rf src/hazbin_tracker/resources/icons/HazbinTracker.iconset
 	@printf "$(GREEN)Iconset generation complete.$(RESET)\n"
 
 .PHONY: install
