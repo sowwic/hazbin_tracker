@@ -8,7 +8,9 @@
             "name": "HazbinTracker",
             "type": "debugpy",
             "request": "launch",
-            "program": "src/hazbin_tracker/main.py",
+            "module": "hazbin_tracker.main",
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "envFile": "${workspaceFolder}/.env",
             "console": "internalConsole",
             "justMyCode": true
         }
