@@ -29,41 +29,44 @@ help: ## Show this help message
 .PHONY: clean
 clean: ## Clean up build artifacts and caches
 	$(call banner, Cleaning project...)
+	@rm -rf build
+	@rm -rf dist
 	@rm -rf .pytest_cache
+	@rm -rf .ruff_cache
+	@rm -rf .test_output
+	@rm -rf .site
+	@rm -rf .coverage
 	@rm -rf __pycache__
 	@rm -rf src/**/__pycache__
 	@rm -rf tests/**/__pycache__
-	@rm -rf build
-	@rm -rf dist
-	@rm -rf .test_output
 	@printf "$(GREEN)Clean up complete.$(RESET)\n"
 
 .PHONY: lint
 lint:  ## Run the Ruff linter on source and test files
 	$(call banner, Running Ruff linter...)
-	@poetry run ruff check src tests || true
+	@uv run ruff check src tests || true
 
 .PHONY: format
 format:  ## Run the Ruff formatter on source and test files
 	$(call banner, Running Ruff formatter...)
-	@poetry run ruff format src tests
+	@uv run ruff format src tests
 
 .PHONY: pytest
 pytest:  ## Run pytest on the tests directory
 	$(call banner, Running pytest...)
-	@poetry run pytest tests
+	@uv run pytest tests
 
 .PHONY: pytest-cov
 pytest-pdb:  ## Run pytest with pdb on failure
 	$(call banner, Cleaning pytest output dir...)
 	@rm -rf $(TEST_OUTPUT_DIR)
 	$(call banner, Running pytest with pdb...)
-	@poetry run pytest --pdb tests
+	@uv run pytest --pdb tests
 
 .PHONY: mkdocs
 mkdocs:  ## Run MkDocs development server
 	$(call banner, Building MkDocs documentation...)
-	@poetry run mkdocs serve
+	@uv run mkdocs serve
 
 .PHONY: check
 check: lint pytest. ## Run all checks (linting and testing)
@@ -83,7 +86,7 @@ app:  ## Build the application using PyInstaller
 update-version:  ## Update the version in pyproject.toml to match the VERSION file
 	@VERSION=$$(cat VERSION); \
 	printf "$(CYAN)==>$(RESET) Updating pyproject.toml version to %s\n" "$$VERSION"; \
-	poetry version $$VERSION
+	uv version $$VERSION
 
 .PHONY: iconset
 iconset:  ## Generate the .icns iconset from the source PNG icon
