@@ -1,7 +1,9 @@
-import typing
 import logging
-from PySide6 import QtCore, QtWidgets
+import typing
 
+from PySide6 import QtCore, QtGui, QtWidgets
+
+from .actions.file_actions import OpenCheckHistoryFileAction
 from .models.check_history import CheckHistoryModel
 
 if typing.TYPE_CHECKING:
@@ -37,24 +39,35 @@ class CheckHistoryDialog(QtWidgets.QDialog):
     def _create_widgets(self) -> None:
         """Create and arrange widgets in the dialog."""
         self._latest_publish_label = QtWidgets.QLabel(self)
+        self.open_file_button = self._build_open_file_button()
 
         # Table view
         self.table_view = QtWidgets.QTableView(self)
         self.table_view.setModel(self._history_model)
-        self.table_view.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
-        self.table_view.setSelectionMode(QtWidgets.QTableView.SingleSelection)
+        self.table_view.setSelectionBehavior(
+            QtWidgets.QTableView.SelectionBehavior.SelectRows
+        )
+        self.table_view.setSelectionMode(
+            QtWidgets.QTableView.SelectionMode.SingleSelection
+        )
         self.table_view.resizeColumnsToContents()
         self.table_view.setAlternatingRowColors(True)
 
         # Enable custom context menu
-        self.table_view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.table_view.setContextMenuPolicy(
+            QtCore.Qt.ContextMenuPolicy.CustomContextMenu
+        )
         self.table_view.customContextMenuRequested.connect(self.show_context_menu)
 
     def _create_layouts(self) -> None:
         """Create and set the layout for the dialog."""
+        info_layout = QtWidgets.QHBoxLayout()
+        info_layout.addWidget(self._latest_publish_label)
+        info_layout.addWidget(self.open_file_button)
+
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.setContentsMargins(5, 5, 5, 5)
-        main_layout.addWidget(self._latest_publish_label)
+        main_layout.addLayout(info_layout)
         main_layout.addWidget(self.table_view)
         self.setLayout(main_layout)
 
@@ -65,8 +78,24 @@ class CheckHistoryDialog(QtWidgets.QDialog):
 
     def application(self) -> "HazbinTrackerApplication":
         """Get the HazbinTrackerApplication instance."""
-        app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
+        app: HazbinTrackerApplication = QtWidgets.QApplication.instance()  # ty: ignore
         return app
+
+    def _build_open_file_button(self) -> QtWidgets.QToolButton:
+        context_menu = QtWidgets.QMenu(self)
+        context_menu.addAction(
+            OpenCheckHistoryFileAction(text="Check History", parent=self)
+        )
+        context_menu.addAction(
+            self.application().cards_tracker.build_open_track_file_action()
+        )
+        button = QtWidgets.QToolButton()
+        button.setIcon(QtGui.QIcon(":/icons/file_open.png"))
+        button.setText("Open...")
+        button.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        button.setPopupMode(QtWidgets.QToolButton.ToolButtonPopupMode.InstantPopup)
+        button.setMenu(context_menu)
+        return button
 
     @QtCore.Slot()
     def adjust_size_to_contents(self) -> None:

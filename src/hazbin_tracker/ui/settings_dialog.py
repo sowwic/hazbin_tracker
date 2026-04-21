@@ -1,8 +1,10 @@
 import typing
+
 from PySide6 import QtWidgets
 
-from .pyside_utils import center_dialog_on_screen
+from .actions.file_actions import OpenLogFileAction, OpenSettingsFileAction
 from .password_edit import PasswordLineEdit
+from .pyside_utils import center_dialog_on_screen
 
 if typing.TYPE_CHECKING:
     from ..core.settings import HazbinSettings
@@ -24,6 +26,12 @@ class SettingsDialog(QtWidgets.QDialog):
         self.setWindowTitle("Settings")
         self.setModal(True)
         self.settings = settings
+
+        # Menubar
+        self.menubar = QtWidgets.QMenuBar(self)
+        self.file_menu = self.menubar.addMenu("File")
+        self.file_menu.addAction(OpenSettingsFileAction(parent=self))
+        self.file_menu.addAction(OpenLogFileAction(parent=self))
 
         # --- Tracker Section ---
         self.tracker_group = QtWidgets.QGroupBox("Tracker")
@@ -67,7 +75,9 @@ class SettingsDialog(QtWidgets.QDialog):
         self.user_key_edit = PasswordLineEdit(
             default_text=self.settings.pushover_user_key
         )
-        self.app_key_edit = PasswordLineEdit(default_text=self.settings.pushover_app_key)
+        self.app_key_edit = PasswordLineEdit(
+            default_text=self.settings.pushover_app_key
+        )
 
         pushover_group_layout.addRow("User Key:", self.user_key_edit)
         pushover_group_layout.addRow("App Key:", self.app_key_edit)
@@ -76,6 +86,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
         # Main layout
         layout = QtWidgets.QVBoxLayout(self)
+        layout.setMenuBar(self.menubar)
         layout.addWidget(self.tracker_group)
         layout.addWidget(self.pushover_group)
         layout.addStretch()

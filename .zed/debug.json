@@ -1,0 +1,12 @@
+[
+  {
+    "label": "Launch HazbinTracker",
+    "adapter": "Debugpy",
+    "request": "launch",
+    "module": "hazbin_tracker.main",
+    "python": ".venv/bin/python",
+    "env_file": ".env",
+    "args": ["-v"],
+    "cwd": "$ZED_WORKTREE_ROOT",
+  },
+]

@@ -1,25 +1,25 @@
-import sys
 import logging
 import pathlib
+import sys
+
 from PySide6 import (
     QtCore,
     QtGui,
     QtWidgets,
 )
-import hazbin_tracker.resources.resources_rc  # noqa: F401
 
+import hazbin_tracker.resources.resources_rc  # noqa: F401
 from hazbin_tracker.core.constants import (
     APPLICATION_TITLE,
     ORGANIZATION_NAME,
 )
 
-from ..version import __version__
 from ..core.cards_tracker import CardsTracker
-from .tray import HazbinTrackerSystemTrayIcon
 from ..core.settings import HazbinSettings
 from ..ui.settings_dialog import SettingsDialog
+from ..version import __version__
 from .pyside_utils import center_dialog_on_screen
-
+from .tray import HazbinTrackerSystemTrayIcon
 
 LOGGER = logging.getLogger(__name__)
 
@@ -38,6 +38,7 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
         super().__init__(argv)
         self.lock_check()
 
+        self.setAttribute(QtCore.Qt.ApplicationAttribute.AA_DontUseNativeMenuBar)
         self.setApplicationName(APPLICATION_TITLE)
         self.setOrganizationName(ORGANIZATION_NAME)
         self.setApplicationVersion(__version__)
