@@ -321,7 +321,12 @@ class CardsTracker(QtCore.QObject):
         CHECK_HISTORY_FILE_PATH.write_text(json.dumps(history, indent=4))
         LOGGER.debug(f"Recorded check result to history: {CHECK_HISTORY_FILE_PATH}")
 
-    def build_open_track_file_action(self):
+    def build_open_track_file_action(self) -> QtGui.QAction:
+        """Build the action to open the track file.
+
+        Returns:
+            QtGui.QAction: The action to open the track file.
+        """
         action = QtGui.QAction("Track File", self)
         action.setToolTip("Open the track file")
         action.setStatusTip("Opens the track file")
