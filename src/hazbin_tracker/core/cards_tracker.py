@@ -261,7 +261,15 @@ class CardsTracker(QtCore.QObject):
         LOGGER.debug("Generating new cards message...")
         message = f"Found {len(new_cards)} new Hazbin cards:"
         for card in new_cards:
-            message += f"\n- {card.get('title')}"
+            available_variants = [
+                variant
+                for variant in card.get("variants", [])
+                if variant.get("available")
+            ]
+            message += (
+                f"\n- {card.get('title')}"
+                f"{'(Not Available)' if not available_variants else ''}"
+            )
         return message
 
     def on_new_cards_found(self, new_cards: list):
