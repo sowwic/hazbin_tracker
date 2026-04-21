@@ -1,7 +1,7 @@
 from PySide6 import QtWidgets
 
 
-def center_dialog_on_screen(dialog: QtWidgets.QDialog):
+def center_dialog_on_screen(dialog: QtWidgets.QWidget) -> None:
     """Center the given dialog on the primary screen.
 
     Args:

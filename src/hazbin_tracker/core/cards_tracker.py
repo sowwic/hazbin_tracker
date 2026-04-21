@@ -1,15 +1,13 @@
-import typing
 import datetime
-import pathlib
 import json
-import requests
 import logging
+import typing
 
-from PySide6 import QtCore
-from PySide6 import QtWidgets
+import requests
+from PySide6 import QtCore, QtGui, QtWidgets
 
-from .scrapper import get_all_cards
 from .constants import APP_DATA_DIR, CHECK_HISTORY_FILE_PATH
+from .scrapper import get_all_cards
 
 if typing.TYPE_CHECKING:
     from ..ui.application import HazbinTrackerApplication
@@ -20,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 class CardsTracker(QtCore.QObject):
     """Tracker class to monitor Hazbin cards for new releases."""
 
-    TRACK_FILE_NAME = "track_data.json"
+    TRACK_FILE_PATH = APP_DATA_DIR / "track_data.json"
     NICE_TIME_FORMAT = "%d-%m-%Y at %H:%M:%S"
 
     cards_updated = QtCore.Signal()
@@ -99,15 +97,6 @@ class CardsTracker(QtCore.QObject):
         if not self.last_check_time:
             return "Never"
         return self.last_check_time.strftime(self.NICE_TIME_FORMAT)
-
-    @property
-    def track_file_path(self) -> pathlib.Path:
-        """Get the path to the track file.
-
-        Returns:
-            pathlib.Path: path to the track file
-        """
-        return APP_DATA_DIR / self.TRACK_FILE_NAME
 
     @property
     def application(self):
@@ -219,7 +208,7 @@ class CardsTracker(QtCore.QObject):
     def fetch_cards_data_from_cache(self):
         """Fetch cards data from cache file."""
         LOGGER.debug("Loading cards from cache")
-        with self.track_file_path.open() as cache_file:
+        with self.TRACK_FILE_PATH.open() as cache_file:
             cache_data = json.load(cache_file)
         self._cards_data = cache_data.get("cards", [])
         self.record_time(
@@ -227,7 +216,9 @@ class CardsTracker(QtCore.QObject):
                 cache_data.get("last_check_time")
             )
         )
-        LOGGER.debug(f"Loaded {len(self._cards_data)} cards from {self.track_file_path}")
+        LOGGER.debug(
+            f"Loaded {len(self._cards_data)} cards from {self.TRACK_FILE_PATH}"
+        )
 
     def fetch_cards_data_from_source(self):
         """Fetch cards data from source."""
@@ -242,7 +233,7 @@ class CardsTracker(QtCore.QObject):
             "last_check_time": self.last_check_time.isoformat(),
             "cards": self.cards_data,
         }
-        with self.track_file_path.open("w") as cache_file:
+        with self.TRACK_FILE_PATH.open("w") as cache_file:
             json.dump(cache_content, cache_file, indent=4)
 
     def record_time(self, time_override: datetime.datetime | None = None):
@@ -329,3 +320,19 @@ class CardsTracker(QtCore.QObject):
         history = history[: self.application.settings.check_history_size]
         CHECK_HISTORY_FILE_PATH.write_text(json.dumps(history, indent=4))
         LOGGER.debug(f"Recorded check result to history: {CHECK_HISTORY_FILE_PATH}")
+
+    def build_open_track_file_action(self) -> QtGui.QAction:
+        """Build the action to open the track file.
+
+        Returns:
+            QtGui.QAction: The action to open the track file.
+        """
+        action = QtGui.QAction("Track File", self)
+        action.setToolTip("Open the track file")
+        action.setStatusTip("Opens the track file")
+        action.triggered.connect(
+            lambda: QtGui.QDesktopServices.openUrl(
+                QtCore.QUrl.fromLocalFile(self.TRACK_FILE_PATH)
+            )
+        )
+        return action

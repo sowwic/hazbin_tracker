@@ -1,5 +1,6 @@
-import sys
 import logging
+import sys
+
 from PySide6.QtWidgets import QMessageBox
 
 from hazbin_tracker.core.logger import HazbinLogger

@@ -69,7 +69,7 @@ mkdocs:  ## Run MkDocs development server
 	@uv run mkdocs serve
 
 .PHONY: check
-check: lint pytest. ## Run all checks (linting and testing)
+check: lint pytest ## Run all checks (linting and testing)
 
 .PHONY: qrc
 qrc:  ## Generate QRC resources
