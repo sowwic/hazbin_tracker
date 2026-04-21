@@ -1,6 +1,14 @@
 hazbin-tracker
 ==============
 
+v 1.0.9
+-------
+
+* (#46) Add "Not available" text to notification of card has no available variants
+* (#45) Add shortcuts for opening appdata files
+* (#42) Switch from poetry to uv
+* (#39) Move resources under src directory
+
 v 1.0.8
 -------
 
