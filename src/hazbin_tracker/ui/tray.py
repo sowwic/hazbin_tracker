@@ -92,7 +92,11 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.context_menu.check_for_updates_action.triggered.connect(
             self.onCheckRequested
         )
+        self._manual_check_pending = False
         self.tracker.new_cards_found.connect(self.show_new_cards_message)
+        self.tracker.check_completed.connect(self.on_check_completed)
+        self.tracker.check_failed.connect(self.on_check_failed)
+        self.tracker.repeated_checks_failed.connect(self.on_repeated_checks_failed)
         self.messageClicked.connect(self.open_hazbin_website)
 
     @property
@@ -104,14 +108,55 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
     @QtCore.Slot()
     def onCheckRequested(self):
         """Handle user request to check for new cards."""
-        new_cards = self.tracker.run_check()
-        if not new_cards:
+        self.tracker.run_check()
+        self._manual_check_pending = True
+
+    @QtCore.Slot(list)
+    def on_check_completed(self, new_cards: list):
+        """Tell the user when a manual check found nothing.
+
+        Args:
+            new_cards (list): List of new cards found.
+        """
+        manual, self._manual_check_pending = self._manual_check_pending, False
+        if manual and not new_cards:
             self.showMessage(
                 "Hazbin Tracker",
                 "No new Hazbin cards found.",
                 QtWidgets.QSystemTrayIcon.MessageIcon.NoIcon,
                 5000,
             )
+
+    @QtCore.Slot(str)
+    def on_check_failed(self, message: str):
+        """Tell the user when a manual check failed.
+
+        Args:
+            message (str): Failure description.
+        """
+        manual, self._manual_check_pending = self._manual_check_pending, False
+        if manual:
+            self.showMessage(
+                "Hazbin Tracker",
+                "Check failed. Will retry on the next scheduled check.",
+                QtWidgets.QSystemTrayIcon.MessageIcon.NoIcon,
+                5000,
+            )
+
+    @QtCore.Slot(int)
+    def on_repeated_checks_failed(self, failed_count: int):
+        """Warn the user that checks keep failing.
+
+        Args:
+            failed_count (int): Number of consecutive failed checks.
+        """
+        self.showMessage(
+            "Hazbin Tracker",
+            f"{failed_count} checks in a row have failed. "
+            "New cards may be missed until this is resolved.",
+            QtWidgets.QSystemTrayIcon.MessageIcon.Warning,
+            0,
+        )
 
     @QtCore.Slot(list)
     def show_new_cards_message(self, new_cards: list):

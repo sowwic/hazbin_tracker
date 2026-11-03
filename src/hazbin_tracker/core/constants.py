@@ -18,9 +18,16 @@ HAZBIN_WEBSITE_URL = "https://hazbinhotel.com/collections/trading-cards"
 HAZBIN_CARDS_PRODUCTS_JSON_URL = (
     "https://hazbinhotel.com/collections/trading-cards/products.json"
 )
-MAX_FETCH_RETRIES = 3
+PRODUCT_TITLE_PREFIX = "Hazbin Hotel Trading Cards"
 PRODUCTS_REQUEST_LIMIT = 250
 DEFAULT_SORT_KEY = "published_at"
+FETCH_TIMEOUT = 30
+MAX_FETCH_RETRIES = 3
+FETCH_BACKOFF_BASE = 2
+MAX_RETRY_DELAY = 60
+PAGE_DELAY = 2
+IMPERSONATE_BROWSER = "chrome"
+MAX_CONSECUTIVE_FAILED_CHECKS = 5
 
 APP_DATA_DIR = pathlib.Path(
     platformdirs.user_data_dir(

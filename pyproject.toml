@@ -15,11 +15,11 @@ dependencies = [
     "requests",
     "platformdirs",
     "curl-cffi>=0.17.0",
-    "beautifulsoup4>=4.15.0",
 ]
 
 [dependency-groups]
 dev = [
+    "beautifulsoup4>=4.15.0",
     "pytest",
     "pytest-cov",
     "pytest-mock",
