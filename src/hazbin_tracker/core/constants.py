@@ -18,6 +18,7 @@ HAZBIN_WEBSITE_URL = "https://hazbinhotel.com/collections/trading-cards"
 HAZBIN_CARDS_PRODUCTS_JSON_URL = (
     "https://hazbinhotel.com/collections/trading-cards/products.json"
 )
+MAX_FETCH_RETRIES = 3
 PRODUCTS_REQUEST_LIMIT = 250
 DEFAULT_SORT_KEY = "published_at"
 

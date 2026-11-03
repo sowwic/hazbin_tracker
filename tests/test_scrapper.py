@@ -4,10 +4,13 @@ import json
 import pathlib
 
 from hazbin_tracker.core.constants import (
-    HAZBIN_CARDS_PRODUCTS_JSON_URL,
+    HAZBIN_WEBSITE_URL,
     DEFAULT_SORT_KEY,
 )
-from hazbin_tracker.core.scrapper import get_all_cards
+from hazbin_tracker.core.scrapper import (
+    get_all_cards,
+    diagnose_shopify_store,
+)
 
 logging.basicConfig(level=logging.DEBUG)
 LOGGER = logging.getLogger(__name__)
@@ -15,8 +18,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 def test_hazbin_cards_page_accessible():
-    response = requests.get(HAZBIN_CARDS_PRODUCTS_JSON_URL)
-    assert response.status_code == 200
+    diagnostics = diagnose_shopify_store(HAZBIN_WEBSITE_URL)
+    assert diagnostics["products_json"] == 200
 
 
 def test_get_cards_products(output_dir: pathlib.Path):
