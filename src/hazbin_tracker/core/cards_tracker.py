@@ -6,13 +6,53 @@ import typing
 import requests
 from PySide6 import QtCore, QtGui, QtWidgets
 
-from .constants import APP_DATA_DIR, CHECK_HISTORY_FILE_PATH
-from .scrapper import get_all_cards
+from .constants import (
+    APP_DATA_DIR,
+    CHECK_HISTORY_FILE_PATH,
+    MAX_CONSECUTIVE_FAILED_CHECKS,
+)
+from .scrapper import CardsScraper, ScraperError, get_all_cards
 
 if typing.TYPE_CHECKING:
+    from ..core.config import CardsTrackerConfigValues, PushoverConfigValues
     from ..ui.application import HazbinTrackerApplication
 
 LOGGER = logging.getLogger(__name__)
+
+
+class CheckWorkerSignals(QtCore.QObject):
+    """Signals emitted by the check worker."""
+
+    finished = QtCore.Signal(list)
+    failed = QtCore.Signal(str)
+
+
+class CheckWorker(QtCore.QRunnable):
+    """Fetches cards from the source outside of the GUI thread."""
+
+    def __init__(self, scraper: CardsScraper | None = None):
+        """Instance constructor.
+
+        Args:
+            scraper (CardsScraper, optional): Scraper to use. Defaults to None.
+        """
+        super().__init__()
+        self.setAutoDelete(False)
+        self.signals = CheckWorkerSignals()
+        self._scraper = scraper or CardsScraper()
+
+    def run(self):
+        """Fetch the cards and report the outcome through signals."""
+        try:
+            cards = self._scraper.get_all_cards()
+        except ScraperError as exc:
+            self.signals.failed.emit(str(exc))
+            return
+        except Exception as exc:  # noqa: BLE001 - nothing may escape a worker thread
+            LOGGER.exception("Unexpected error during cards check")
+            self.signals.failed.emit(str(exc))
+            return
+        self.signals.finished.emit(cards)
 
 
 class CardsTracker(QtCore.QObject):
@@ -25,6 +65,8 @@ class CardsTracker(QtCore.QObject):
     check_time_updated = QtCore.Signal()
     new_cards_found = QtCore.Signal(list)
     check_completed = QtCore.Signal(list)
+    check_failed = QtCore.Signal(str)
+    repeated_checks_failed = QtCore.Signal(int)
 
     def __repr__(self):
         """Repr override.
@@ -36,7 +78,7 @@ class CardsTracker(QtCore.QObject):
             f"<CardsTracker last_check_time={self.nice_last_checked_time},"
             " cards_count="
             f"{len(self._cards_data) if self._cards_data else 0},"
-            f" frequency={self.application.settings.tracker_check_minute_frequency} min>"
+            f" frequency={self.config_values.frequency_min} min>"
         )
 
     def __init__(self):
@@ -44,6 +86,8 @@ class CardsTracker(QtCore.QObject):
         super().__init__()
         self._last_check_time: datetime.datetime | None = None
         self._cards_data = None
+        self._check_worker: CheckWorker | None = None
+        self._failed_checks_in_a_row = 0
 
         # Timer
         self._check_timer = QtCore.QTimer(self)
@@ -57,11 +101,8 @@ class CardsTracker(QtCore.QObject):
         """Create signals and connect them."""
         self._check_timer.timeout.connect(self.run_check)
         self.new_cards_found.connect(self.on_new_cards_found)
-        self.application.settings.tracker_frequency_changed.connect(
-            self.start_periodic_check_timer
-        )
+        self.application.configChanged.connect(self.start_periodic_check_timer)
         self.check_completed.connect(self.record_check_result)
-        LOGGER.info(f"Started tracker: {self}")
 
     @property
     def cards_data(self):
@@ -99,14 +140,24 @@ class CardsTracker(QtCore.QObject):
         return self.last_check_time.strftime(self.NICE_TIME_FORMAT)
 
     @property
-    def application(self):
+    def application(self) -> "HazbinTrackerApplication":
         """Get the main application instance.
 
         Returns:
             HazbinTrackerApplication: main application instance
         """
-        app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
+        app: HazbinTrackerApplication = QtWidgets.QApplication.instance()  # ty: ignore
         return app
+
+    @property
+    def config_values(self) -> "CardsTrackerConfigValues":
+        """Get the cards tracker config values."""
+        return self.application.config.values.cards_tracker
+
+    @property
+    def pushover_config_values(self) -> "PushoverConfigValues":
+        """Get the Pushover config values."""
+        return self.application.config.values.pushover
 
     @property
     def latest_publish_time(self) -> datetime.datetime:
@@ -163,29 +214,48 @@ class CardsTracker(QtCore.QObject):
         if self._check_timer.isActive():
             self._check_timer.stop()
         self._check_timer.setInterval(
-            self.application.settings.tracker_check_minute_frequency * 60 * 1000
+            self.config_values.frequency_min * 60 * 1000
         )  # minutes in msƒ
         self._check_timer.start()
         LOGGER.debug(f"Check Timer: {self._check_timer.interval()}ms")
 
-    def run_check(self) -> list[dict]:
-        """Run a check for new cards.
+    @property
+    def failed_checks_in_a_row(self) -> int:
+        """Number of consecutive failed checks since the last success."""
+        return self._failed_checks_in_a_row
+
+    @property
+    def is_check_running(self) -> bool:
+        """Whether a check is currently in progress."""
+        return self._check_worker is not None
+
+    def run_check(self) -> bool:
+        """Start a check for new cards in the background.
 
         Returns:
-            list[dict]: list of new cards found
+            bool: True if a check was started, False if one is already running
         """
+        if self.is_check_running:
+            LOGGER.debug("Check already in progress, skipping")
+            return False
         LOGGER.info("Running cards check...")
-        source_cards = get_all_cards()
+        worker = CheckWorker()
+        worker.signals.finished.connect(self._on_check_finished)
+        worker.signals.failed.connect(self._on_check_failed)
+        self._check_worker = worker
+        QtCore.QThreadPool.globalInstance().start(worker)
+        return True
 
-        new_cards = []
-        if self.last_check_time is not None:
-            for card in source_cards:
-                cards_published_at = datetime.datetime.fromisoformat(
-                    card["published_at"]
-                )
-                if cards_published_at > self._last_check_time:
-                    new_cards.append(card)
+    @QtCore.Slot(list)
+    def _on_check_finished(self, source_cards: list[dict]):
+        """Handle fetched cards: detect new ones, update data and cache.
 
+        Args:
+            source_cards (list[dict]): cards fetched from the source
+        """
+        self._check_worker = None
+        self._failed_checks_in_a_row = 0
+        new_cards = self.find_new_cards(source_cards)
         LOGGER.info(f"Found {len(new_cards)} new cards.")
         self.cards_data = source_cards
         self.record_time()
@@ -193,7 +263,40 @@ class CardsTracker(QtCore.QObject):
         self.check_completed.emit(new_cards)
         if new_cards:
             self.new_cards_found.emit(new_cards)
-        return new_cards
+
+    @QtCore.Slot(str)
+    def _on_check_failed(self, message: str):
+        """Handle a failed check; the next scheduled check retries.
+
+        Args:
+            message (str): failure description
+        """
+        self._check_worker = None
+        self._failed_checks_in_a_row += 1
+        LOGGER.warning(
+            f"Cards check failed ({self._failed_checks_in_a_row} in a row): {message}"
+        )
+        self.check_failed.emit(message)
+        if self._failed_checks_in_a_row == MAX_CONSECUTIVE_FAILED_CHECKS:
+            self.repeated_checks_failed.emit(self._failed_checks_in_a_row)
+
+    def find_new_cards(self, source_cards: list[dict]) -> list[dict]:
+        """Get cards published after the last check.
+
+        Args:
+            source_cards (list[dict]): cards fetched from the source
+
+        Returns:
+            list[dict]: cards published after the last check time
+        """
+        if self.last_check_time is None:
+            return []
+        return [
+            card
+            for card in source_cards
+            if datetime.datetime.fromisoformat(card["published_at"])
+            > self.last_check_time
+        ]
 
     def populate_cards_data(self):
         """Populate cards data from cache or source."""
@@ -216,14 +319,16 @@ class CardsTracker(QtCore.QObject):
                 cache_data.get("last_check_time")
             )
         )
-        LOGGER.debug(
-            f"Loaded {len(self._cards_data)} cards from {self.TRACK_FILE_PATH}"
-        )
+        LOGGER.debug(f"Loaded {len(self._cards_data)} cards from {self.TRACK_FILE_PATH}")
 
     def fetch_cards_data_from_source(self):
         """Fetch cards data from source."""
         LOGGER.debug("Fetching cards data from source")
-        self._cards_data = get_all_cards()
+        try:
+            self._cards_data = get_all_cards()
+        except ScraperError as exc:
+            LOGGER.warning(f"Failed to fetch initial cards: {exc}")
+            self._cards_data = []
         self.record_time()
 
     def create_cache(self):
@@ -278,7 +383,7 @@ class CardsTracker(QtCore.QObject):
         Args:
             new_cards (list): list of new cards found
         """
-        if not self.application.settings.pushover_enabled:
+        if not self.pushover_config_values.enabled:
             LOGGER.debug("Push notifications are disabled, skipping...")
             return
 
@@ -286,8 +391,8 @@ class CardsTracker(QtCore.QObject):
             response = requests.post(
                 "https://api.pushover.net/1/messages.json",
                 data={
-                    "token": self.application.settings.pushover_app_key,
-                    "user": self.application.settings.pushover_user_key,
+                    "token": self.pushover_config_values.app_key,
+                    "user": self.pushover_config_values.user_key,
                     "title": "HazbinTracker - New Cards available!",
                     "message": self.generate_new_cards_message(new_cards),
                 },
@@ -325,7 +430,7 @@ class CardsTracker(QtCore.QObject):
         history.insert(0, record)
 
         # Trim history if it exceeds the maximum size
-        history = history[: self.application.settings.check_history_size]
+        history = history[: self.config_values.history_size]
         CHECK_HISTORY_FILE_PATH.write_text(json.dumps(history, indent=4))
         LOGGER.debug(f"Recorded check result to history: {CHECK_HISTORY_FILE_PATH}")
 
