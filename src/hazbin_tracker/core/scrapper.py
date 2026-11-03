@@ -1,160 +1,161 @@
+import dataclasses
 import logging
-import json
 import time
 
 from curl_cffi import requests
-from bs4 import BeautifulSoup
-from xml.etree import ElementTree
+from curl_cffi.requests.exceptions import RequestException
 
 from .constants import (
-    HAZBIN_WEBSITE_URL,
-    PRODUCTS_REQUEST_LIMIT,
     DEFAULT_SORT_KEY,
+    FETCH_BACKOFF_BASE,
+    FETCH_TIMEOUT,
+    HAZBIN_CARDS_PRODUCTS_JSON_URL,
+    IMPERSONATE_BROWSER,
     MAX_FETCH_RETRIES,
+    MAX_RETRY_DELAY,
+    PAGE_DELAY,
+    PRODUCT_TITLE_PREFIX,
+    PRODUCTS_REQUEST_LIMIT,
 )
 
 LOGGER = logging.getLogger(__name__)
 
-PRODUCT_TITLE_PREFIX = "Hazbin Hotel Trading Cards"
+RATE_LIMITED_STATUS = 429
+SERVER_ERROR_STATUS = 500
 
 
-def diagnose_shopify_store(store_url: str):
-    """Run a full diagnostic on a Shopify store."""
-    report = {"store": store_url}
-    ns = {"ns": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+class ScraperError(Exception):
+    """Raised when the cards can't be fetched from the store."""
 
-    # 1. products.json availability + get a sample handle
-    sample_handle = None
-    try:
-        resp = requests.get(
-            f"{store_url}/products.json?limit=1", impersonate="chrome", timeout=10
-        )
-        report["products_json"] = resp.status_code
-        if resp.status_code == 200:
-            data = resp.json()
-            report["is_shopify"] = "products" in data
-            if data.get("products"):
-                sample_handle = data["products"][0]["handle"]
-        else:
-            report["is_shopify"] = False
-    except Exception:
-        report["products_json"] = "error"
-        report["is_shopify"] = False
 
-    # 2. Catalog size from sitemap (checks all product sub-sitemaps)
-    try:
-        resp = requests.get(f"{store_url}/sitemap.xml", impersonate="chrome", timeout=10)
-        root = ElementTree.fromstring(resp.content)
-        total = 0
-        for sm in root.findall("ns:sitemap", ns):
-            loc = sm.find("ns:loc", ns).text
-            if "products" in loc:
-                r2 = requests.get(loc, impersonate="chrome", timeout=15)
-                r2root = ElementTree.fromstring(r2.content)
-                total += sum(
-                    1
-                    for u in r2root.findall("ns:url", ns)
-                    if "/products/" in u.find("ns:loc", ns).text
-                )
-        report["catalog_size"] = total if total else None
-    except Exception:
-        report["catalog_size"] = None
+class RateLimitedError(ScraperError):
+    """Raised when the store keeps responding with 429 Too Many Requests."""
 
-    # 3. /products/{handle}.js endpoint
-    if sample_handle:
+    retry_after: int | None = None
+
+
+@dataclasses.dataclass(frozen=True)
+class ScraperConfig:
+    """Settings of the cards scraper."""
+
+    products_url: str = HAZBIN_CARDS_PRODUCTS_JSON_URL
+    page_limit: int = PRODUCTS_REQUEST_LIMIT
+    timeout: float = FETCH_TIMEOUT
+    max_retries: int = MAX_FETCH_RETRIES
+    backoff_base: float = FETCH_BACKOFF_BASE
+    max_retry_delay: float = MAX_RETRY_DELAY
+    page_delay: float = PAGE_DELAY
+    impersonate: str = IMPERSONATE_BROWSER
+    title_prefix: str = PRODUCT_TITLE_PREFIX
+    sort_key: str = DEFAULT_SORT_KEY
+
+
+class CardsScraper:
+    """Fetches trading cards from the store products endpoint."""
+
+    def __init__(self, config: ScraperConfig | None = None):
+        """Instance constructor.
+
+        Args:
+            config (ScraperConfig, optional): Scraper settings. Defaults to None.
+        """
+        self.config = config or ScraperConfig()
+
+    def get_all_cards(self) -> list[dict]:
+        """Get all trading cards sorted by the configured sort key.
+
+        Returns:
+            list[dict]: A list of sorted cards dictionaries.
+
+        Raises:
+            ScraperError: If the cards can't be fetched.
+        """
+        cards = [self._clean_title(product) for product in self.fetch_products()]
+        return sorted(cards, key=lambda card: card[self.config.sort_key], reverse=True)
+
+    def fetch_products(self) -> list[dict]:
+        """Fetch every product page of the cards collection.
+
+        Returns:
+            list[dict]: Raw product dictionaries.
+        """
+        products = []
+        page = 1
+        while True:
+            page_products = self._fetch_page(page)
+            products.extend(page_products)
+            LOGGER.info(f"Page {page}: {len(page_products)} products")
+            if len(page_products) < self.config.page_limit:
+                return products
+            page += 1
+            time.sleep(self.config.page_delay)
+
+    def _fetch_page(self, page: int) -> list[dict]:
+        params = {"limit": self.config.page_limit, "page": page}
         try:
-            r = requests.get(
-                f"{store_url}/products/{sample_handle}.js",
-                impersonate="chrome",
-                timeout=10,
-            )
-            report["js_endpoint"] = r.status_code == 200
-        except Exception:
-            report["js_endpoint"] = False
+            return self._get_with_retry(params).json().get("products", [])
+        except ValueError as exc:
+            raise ScraperError(f"Invalid products response: {exc}") from exc
 
-    # 4. /collections.json endpoint
-    try:
-        r = requests.get(
-            f"{store_url}/collections.json?limit=1", impersonate="chrome", timeout=10
-        )
-        report["collections_json"] = r.status_code == 200 and "collections" in r.json()
-    except Exception:
-        report["collections_json"] = False
-
-    # 5. JSON-LD on HTML product pages
-    if sample_handle:
-        try:
-            r = requests.get(
-                f"{store_url}/products/{sample_handle}", impersonate="chrome", timeout=15
-            )
-            soup = BeautifulSoup(r.text, "html.parser")
-            has_jsonld = False
-            for s in soup.find_all("script", type="application/ld+json"):
-                try:
-                    d = json.loads(s.string)
-                    items = d if isinstance(d, list) else [d]
-                    for item in items:
-                        if item.get("@type") in ("Product", "ProductGroup"):
-                            has_jsonld = True
-                except Exception:
-                    continue
-            report["jsonld_on_html"] = has_jsonld
-        except Exception:
-            report["jsonld_on_html"] = False
-
-    return report
-
-
-def fetch_with_retry(url, max_retries=MAX_FETCH_RETRIES):
-    """GET with exponential backoff on failure or rate limit."""
-    for attempt in range(max_retries):
-        try:
-            resp = requests.get(url, impersonate="chrome", timeout=30)
-            if resp.status_code == 429:
-                wait = 2 ** (attempt + 1)
-                LOGGER.warning(f"  Rate limited. Waiting {wait}s...")
-                time.sleep(wait)
+    def _get_with_retry(self, params: dict):
+        """GET the products endpoint, retrying rate limits and transient failures."""
+        last_error: Exception | None = None
+        for attempt in range(self.config.max_retries):
+            if attempt:
+                self._sleep_before_retry(attempt, last_error)
+            try:
+                response = self._get(params)
+            except RequestException as exc:
+                last_error = exc
                 continue
-            resp.raise_for_status()
-            return resp
-        except Exception:
-            if attempt == max_retries - 1:
-                raise
-            time.sleep(2**attempt)
-    return None
+            if response.status_code == RATE_LIMITED_STATUS:
+                last_error = self._rate_limit_error(response)
+                continue
+            if response.status_code >= SERVER_ERROR_STATUS:
+                last_error = ScraperError(f"Store error {response.status_code}")
+                continue
+            if not response.ok:
+                raise ScraperError(f"Store responded with {response.status_code}")
+            return response
 
+        if isinstance(last_error, RateLimitedError):
+            raise last_error
+        raise ScraperError(f"Failed to fetch products: {last_error}") from last_error
 
-def scrape_shopify_products(store_url):
-    """Scrape all products via the products.json endpoint."""
-    all_products = []
-    page = 1
+    def _get(self, params: dict):
+        return requests.get(
+            self.config.products_url,
+            params=params,
+            impersonate=self.config.impersonate,
+            timeout=self.config.timeout,
+        )
 
-    while True:
-        url = f"{store_url}/products.json?limit={PRODUCTS_REQUEST_LIMIT}&page={page}"
-        response = fetch_with_retry(url)
-        products = response.json().get("products", [])
+    def _sleep_before_retry(self, attempt: int, error: Exception | None):
+        retry_after = getattr(error, "retry_after", None)
+        delay = retry_after or self.config.backoff_base**attempt
+        delay = min(delay, self.config.max_retry_delay)
+        LOGGER.warning(f"Fetch failed ({error}). Retrying in {delay}s...")
+        time.sleep(delay)
 
-        if not products:
-            break
+    @staticmethod
+    def _rate_limit_error(response) -> RateLimitedError:
+        error = RateLimitedError("Store is rate limiting requests (429).")
+        header = response.headers.get("Retry-After", "")
+        error.retry_after = int(header) if header.isdigit() else None
+        return error
 
-        all_products.extend(products)
-        LOGGER.info(f"Page {page}: {len(products)} products")
-        page += 1
-        time.sleep(2)
-
-    return all_products
+    def _clean_title(self, product: dict) -> dict:
+        """Get a copy of the product without the shared title prefix."""
+        title = product.get("title")
+        if isinstance(title, str) and title.startswith(self.config.title_prefix):
+            title = title.removeprefix(self.config.title_prefix).strip()
+        return {**product, "title": title}
 
 
 def get_all_cards() -> list[dict]:
-    """Get all trading card sorted by the default sort key.
+    """Get all trading cards using the default scraper configuration.
 
     Returns:
         list[dict]: A list of sorted cards dictionaries.
     """
-    products = scrape_shopify_products(HAZBIN_WEBSITE_URL)
-    for product in products:
-        title = product.get("title")
-        if isinstance(title, str) and title.startswith(PRODUCT_TITLE_PREFIX):
-            product["title"] = title.split(PRODUCT_TITLE_PREFIX, maxsplit=1)[-1].strip()
-
-    return sorted(products, key=lambda x: x[DEFAULT_SORT_KEY], reverse=True)
+    return CardsScraper().get_all_cards()

@@ -3,11 +3,12 @@ import datetime
 from datetime import timedelta
 
 from src.hazbin_tracker.core.cards_tracker import CardsTracker
+from src.hazbin_tracker.core.constants import MAX_CONSECUTIVE_FAILED_CHECKS
+from src.hazbin_tracker.core.scrapper import ScraperError
 
 
 TIME_ONE_HOUR_AGO = datetime.datetime.now(datetime.UTC) - timedelta(hours=1)
 TIME_ONE_HOUR_LATER = datetime.datetime.now(datetime.UTC) + timedelta(hours=1)
-GET_ALL_CARDS_FUNC_SIGNATURE = "src.hazbin_tracker.core.cards_tracker.get_all_cards"
 
 
 @pytest.fixture
@@ -45,29 +46,6 @@ def fake_new_cards_data():
 
 
 @pytest.fixture
-def mock_get_all_cards(
-    mocker,
-    request,
-    fake_no_new_cards_data,
-    fake_new_cards_data,
-):
-    """Mock get_all_cards to return predefined data."""
-    if request.param == "no_new":
-        data = fake_no_new_cards_data
-    elif request.param == "new":
-        data = fake_new_cards_data
-    else:
-        raise ValueError(request.param)
-
-    mocker.patch(
-        GET_ALL_CARDS_FUNC_SIGNATURE,
-        return_value=data,
-    )
-
-    return request.param
-
-
-@pytest.fixture
 def tracker_instance(mocker):
     """Tracker instance with mocked properties and methods."""
     mocker.patch.object(CardsTracker, "on_new_cards_found", return_value=None)
@@ -89,24 +67,78 @@ def tracker_instance(mocker):
     return tracker
 
 
-@pytest.mark.parametrize(
-    "mock_get_all_cards",
-    ["no_new", "new"],
-    indirect=True,
-)
-def test_run_check(
-    tracker_instance,
-    mock_get_all_cards,
-    fake_no_new_cards_data,
-    fake_new_cards_data,
-):
-    """Test run_check method with fake cards data."""
-    if mock_get_all_cards == "no_new":
-        new_cards = tracker_instance.run_check()
-        assert tracker_instance._cards_data == fake_no_new_cards_data
-        assert len(new_cards) == 0
+def test_on_check_finished_no_new(tracker_instance, fake_no_new_cards_data):
+    """Cards published before the last check are not reported."""
+    with_signal = []
+    tracker_instance.check_completed.connect(with_signal.append)
 
-    elif mock_get_all_cards == "new":
-        new_cards = tracker_instance.run_check()
-        assert tracker_instance._cards_data == fake_new_cards_data
-        assert len(new_cards) == len(fake_new_cards_data)
+    tracker_instance._on_check_finished(fake_no_new_cards_data)
+
+    assert tracker_instance._cards_data == fake_no_new_cards_data
+    assert with_signal == [[]]
+
+
+def test_on_check_finished_new(tracker_instance, fake_new_cards_data):
+    """Cards published after the last check are reported."""
+    found = []
+    tracker_instance.new_cards_found.connect(found.append)
+
+    tracker_instance._on_check_finished(fake_new_cards_data)
+
+    assert tracker_instance._cards_data == fake_new_cards_data
+    assert found == [fake_new_cards_data]
+
+
+def test_run_check_runs_in_background(qtbot, tracker_instance, mocker):
+    """run_check starts a worker and results arrive through signals."""
+    mocker.patch(
+        "src.hazbin_tracker.core.cards_tracker.CardsScraper.get_all_cards",
+        return_value=[],
+    )
+    with qtbot.waitSignal(tracker_instance.check_completed, timeout=5000):
+        assert tracker_instance.run_check() is True
+        assert tracker_instance.is_check_running
+        assert tracker_instance.run_check() is False  # overlap guard
+    assert not tracker_instance.is_check_running
+
+
+def test_run_check_failure_emits_check_failed(qtbot, tracker_instance, mocker):
+    """A scraper failure is reported via check_failed and keeps the data."""
+    mocker.patch(
+        "src.hazbin_tracker.core.cards_tracker.CardsScraper.get_all_cards",
+        side_effect=ScraperError("429"),
+    )
+    tracker_instance._cards_data = [{"title": "keep"}]
+    with qtbot.waitSignal(tracker_instance.check_failed, timeout=5000) as blocker:
+        tracker_instance.run_check()
+    assert blocker.args == ["429"]
+    assert tracker_instance._cards_data == [{"title": "keep"}]
+    assert not tracker_instance.is_check_running
+
+
+def test_repeated_failures_notify_once_and_reset_on_success(tracker_instance):
+    """The streak signal fires at the threshold only and success resets it."""
+    streaks = []
+    tracker_instance.repeated_checks_failed.connect(streaks.append)
+
+    for _ in range(MAX_CONSECUTIVE_FAILED_CHECKS + 2):
+        tracker_instance._on_check_failed("429")
+
+    assert streaks == [MAX_CONSECUTIVE_FAILED_CHECKS]
+    assert tracker_instance.failed_checks_in_a_row == MAX_CONSECUTIVE_FAILED_CHECKS + 2
+
+    tracker_instance._on_check_finished([])
+    assert tracker_instance.failed_checks_in_a_row == 0
+
+    for _ in range(MAX_CONSECUTIVE_FAILED_CHECKS):
+        tracker_instance._on_check_failed("429")
+    assert streaks == [MAX_CONSECUTIVE_FAILED_CHECKS] * 2
+
+
+def test_fewer_failures_do_not_notify(tracker_instance):
+    """No streak signal below the threshold."""
+    streaks = []
+    tracker_instance.repeated_checks_failed.connect(streaks.append)
+    for _ in range(MAX_CONSECUTIVE_FAILED_CHECKS - 1):
+        tracker_instance._on_check_failed("429")
+    assert streaks == []
