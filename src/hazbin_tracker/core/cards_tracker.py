@@ -14,6 +14,7 @@ from .constants import (
 from .scrapper import CardsScraper, ScraperError, get_all_cards
 
 if typing.TYPE_CHECKING:
+    from ..core.config import CardsTrackerConfigValues, PushoverConfigValues
     from ..ui.application import HazbinTrackerApplication
 
 LOGGER = logging.getLogger(__name__)
@@ -77,7 +78,7 @@ class CardsTracker(QtCore.QObject):
             f"<CardsTracker last_check_time={self.nice_last_checked_time},"
             " cards_count="
             f"{len(self._cards_data) if self._cards_data else 0},"
-            f" frequency={self.application.settings.tracker_check_minute_frequency} min>"
+            f" frequency={self.config_values.frequency_min} min>"
         )
 
     def __init__(self):
@@ -100,11 +101,8 @@ class CardsTracker(QtCore.QObject):
         """Create signals and connect them."""
         self._check_timer.timeout.connect(self.run_check)
         self.new_cards_found.connect(self.on_new_cards_found)
-        self.application.settings.tracker_frequency_changed.connect(
-            self.start_periodic_check_timer
-        )
+        self.application.configChanged.connect(self.start_periodic_check_timer)
         self.check_completed.connect(self.record_check_result)
-        LOGGER.info(f"Started tracker: {self}")
 
     @property
     def cards_data(self):
@@ -142,14 +140,24 @@ class CardsTracker(QtCore.QObject):
         return self.last_check_time.strftime(self.NICE_TIME_FORMAT)
 
     @property
-    def application(self):
+    def application(self) -> "HazbinTrackerApplication":
         """Get the main application instance.
 
         Returns:
             HazbinTrackerApplication: main application instance
         """
-        app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
+        app: HazbinTrackerApplication = QtWidgets.QApplication.instance()  # ty: ignore
         return app
+
+    @property
+    def config_values(self) -> "CardsTrackerConfigValues":
+        """Get the cards tracker config values."""
+        return self.application.config.values.cards_tracker
+
+    @property
+    def pushover_config_values(self) -> "PushoverConfigValues":
+        """Get the Pushover config values."""
+        return self.application.config.values.pushover
 
     @property
     def latest_publish_time(self) -> datetime.datetime:
@@ -206,7 +214,7 @@ class CardsTracker(QtCore.QObject):
         if self._check_timer.isActive():
             self._check_timer.stop()
         self._check_timer.setInterval(
-            self.application.settings.tracker_check_minute_frequency * 60 * 1000
+            self.config_values.frequency_min * 60 * 1000
         )  # minutes in msƒ
         self._check_timer.start()
         LOGGER.debug(f"Check Timer: {self._check_timer.interval()}ms")
@@ -375,7 +383,7 @@ class CardsTracker(QtCore.QObject):
         Args:
             new_cards (list): list of new cards found
         """
-        if not self.application.settings.pushover_enabled:
+        if not self.pushover_config_values.enabled:
             LOGGER.debug("Push notifications are disabled, skipping...")
             return
 
@@ -383,8 +391,8 @@ class CardsTracker(QtCore.QObject):
             response = requests.post(
                 "https://api.pushover.net/1/messages.json",
                 data={
-                    "token": self.application.settings.pushover_app_key,
-                    "user": self.application.settings.pushover_user_key,
+                    "token": self.pushover_config_values.app_key,
+                    "user": self.pushover_config_values.user_key,
                     "title": "HazbinTracker - New Cards available!",
                     "message": self.generate_new_cards_message(new_cards),
                 },
@@ -422,7 +430,7 @@ class CardsTracker(QtCore.QObject):
         history.insert(0, record)
 
         # Trim history if it exceeds the maximum size
-        history = history[: self.application.settings.check_history_size]
+        history = history[: self.config_values.history_size]
         CHECK_HISTORY_FILE_PATH.write_text(json.dumps(history, indent=4))
         LOGGER.debug(f"Recorded check result to history: {CHECK_HISTORY_FILE_PATH}")
 

@@ -4,7 +4,7 @@ from PySide6 import QtCore, QtGui
 
 from hazbin_tracker.core.constants import (
     CHECK_HISTORY_FILE_PATH,
-    SETTINGS_FILE_PATH,
+    CONFIG_FILE_PATH,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 class OpenSettingsFileAction(QtGui.QAction):
     """Action to open the settings file."""
 
-    SETTINGS_FILE_URL = QtCore.QUrl.fromLocalFile(SETTINGS_FILE_PATH.as_posix())
+    SETTINGS_FILE_URL = QtCore.QUrl.fromLocalFile(CONFIG_FILE_PATH.as_posix())
     DEFAULT_TEXT = "Open Settings File"
 
     def __init__(self, text: str | None = None, parent=None):
