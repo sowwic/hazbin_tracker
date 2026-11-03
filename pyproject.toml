@@ -15,6 +15,7 @@ dependencies = [
     "requests",
     "platformdirs",
     "curl-cffi>=0.17.0",
+    "json-config",
 ]
 
 [dependency-groups]
@@ -60,3 +61,6 @@ lint.ignore = [
 addopts = "--cov=hazbin_tracker --cov-report=term-missing"
 log_cli = true
 log_cli_level = "INFO"
+
+[tool.uv.sources]
+json-config = { git = "https://github.com/sowwic/json-config", tag="v1.0.6"}
