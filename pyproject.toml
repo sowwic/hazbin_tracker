@@ -1,6 +1,6 @@
 [project]
 name = "hazbin-tracker"
-version = "1.0.9"
+version = "1.1.0"
 description = "Hazbin hotel cards release tracker"
 authors = [
     {name = "Dmitrii Shevchenko",email = "47799401+sowwic@users.noreply.github.com"}
@@ -14,10 +14,13 @@ dependencies = [
     "pyside6 ",
     "requests",
     "platformdirs",
+    "curl-cffi>=0.17.0",
+    "json-config",
 ]
 
 [dependency-groups]
 dev = [
+    "beautifulsoup4>=4.15.0",
     "pytest",
     "pytest-cov",
     "pytest-mock",
@@ -58,3 +61,6 @@ lint.ignore = [
 addopts = "--cov=hazbin_tracker --cov-report=term-missing"
 log_cli = true
 log_cli_level = "INFO"
+
+[tool.uv.sources]
+json-config = { git = "https://github.com/sowwic/json-config", tag="v1.0.6"}

@@ -1,6 +1,12 @@
 hazbin-tracker
 ==============
 
+v 1.1.0
+-------
+* (#55) Address check failing due to rate limits
+* (#55) Move to json-config
+* (#55) Switch to using shared workflow from sowwic/gh-worlflows
+
 v 1.0.9
 -------
 

@@ -4,6 +4,9 @@ APP_NAME = HazbinTracker
 DIST_DIR = dist
 APP_PATH = $(DIST_DIR)/$(APP_NAME).app
 APPLICATIONS_DIR = /Applications
+RELEASE_BRANCH ?= master
+DEVELOP_BRANCH ?= develop
+GH_WORKFLOWS_REF ?= v1
 
 # Colors
 BLUE := \033[34m
@@ -82,11 +85,20 @@ app:  ## Build the application using PyInstaller
 	$(call banner, Building $(APP_NAME)...)
 	@pyinstaller HazbinTracker.spec
 
-.PHONY:update-version
-update-version:  ## Update the version in pyproject.toml to match the VERSION file
-	@VERSION=$$(cat VERSION); \
-	printf "$(CYAN)==>$(RESET) Updating pyproject.toml version to %s\n" "$$VERSION"; \
-	uv version $$VERSION
+.PHONY: bump-version
+bump-version:  ## Set version in VERSION, pyproject.toml and uv.lock: make bump-version VERSION=X.Y.Z
+	$(if $(VERSION),,$(error VERSION is required, e.g. make bump-version VERSION=1.2.3))
+	@echo "$(VERSION)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$' || { printf "$(RED)Invalid version '$(VERSION)', expected X.Y.Z$(RESET)\n"; exit 1; }
+	$(call banner, Bumping version to $(VERSION)...)
+	@echo "$(VERSION)" > VERSION
+	@uv version $(VERSION)
+
+.PHONY: release
+release:  ## Tag, push and back-merge a release: make release VERSION=x.y.z [RELEASE_TITLE=...]
+	$(if $(VERSION),,$(error VERSION is required, e.g. make release VERSION=1.2.3))
+	$(call banner, Releasing $(APP_NAME) v$(VERSION)...)
+	@curl -fsSL https://raw.githubusercontent.com/sowwic/gh-workflows/$(GH_WORKFLOWS_REF)/scripts/release.py | \
+		python3 - $(VERSION) --release-branch $(RELEASE_BRANCH) --develop-branch $(DEVELOP_BRANCH) $(if $(RELEASE_TITLE),--title "$(RELEASE_TITLE)")
 
 .PHONY: iconset
 iconset:  ## Generate the .icns iconset from the source PNG icon

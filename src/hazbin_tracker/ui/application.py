@@ -15,7 +15,7 @@ from hazbin_tracker.core.constants import (
 )
 
 from ..core.cards_tracker import CardsTracker
-from ..core.settings import HazbinSettings
+from ..core.config import HazbinAppConfig
 from ..ui.settings_dialog import SettingsDialog
 from ..version import __version__
 from .pyside_utils import center_dialog_on_screen
@@ -28,6 +28,8 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
     """Main application class for Hazbin Tracker."""
 
     LOCK_FILE = pathlib.Path(QtCore.QDir.tempPath()) / "hazbin_tracker.lock"
+
+    configChanged = QtCore.Signal()
 
     def __init__(self, argv):
         """Instance constructor.
@@ -44,11 +46,10 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
         self.setApplicationVersion(__version__)
         self.setWindowIcon(QtGui.QIcon(":/icons/hazbin.png"))
 
-        self.settings = HazbinSettings()
+        self._init_config()
         self.main_window = QtWidgets.QMainWindow()
         center_dialog_on_screen(self.main_window)
         self.main_window.hide()
-        self._setup_pushover()
 
         self.cards_tracker = CardsTracker()
         self.tray_icon = HazbinTrackerSystemTrayIcon(QtGui.QIcon(":/icons/cards.png"))
@@ -56,23 +57,19 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
         self.tray_icon.show()
         self.cards_tracker.start_periodic_check_timer()
 
-    def _setup_pushover(self):
-        """Set up Pushover notifications based on settings."""
-        if not self.settings.pushover_enabled:
-            self.settings.pushover_enabled = False
-            return
+    @property
+    def config(self) -> HazbinAppConfig:
+        """Get the application config."""
+        return self._config
 
-        if not (self.settings.pushover_user_key and self.settings.pushover_app_key):
-            self.show_settings_dialog()
-            if not self.settings.pushover_app_key:
-                self.settings.pushover_app_key = ""
-            if not self.settings.pushover_user_key:
-                self.settings.pushover_user_key = ""
+    def _init_config(self):
+        self._config = HazbinAppConfig()
+        self._config.resolve()
 
     @QtCore.Slot()
     def show_settings_dialog(self):
         """Show the settings dialog."""
-        dialog = SettingsDialog(self.settings, parent=self.main_window)
+        dialog = SettingsDialog(parent=self.main_window)
         center_dialog_on_screen(dialog)
         dialog.raise_()
         dialog.exec()
