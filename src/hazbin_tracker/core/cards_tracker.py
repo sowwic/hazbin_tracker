@@ -68,7 +68,7 @@ class CardsTracker(QtCore.QObject):
     check_failed = QtCore.Signal(str)
     repeated_checks_failed = QtCore.Signal(int)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Repr override.
 
         Returns:
@@ -115,11 +115,11 @@ class CardsTracker(QtCore.QObject):
         self.cards_updated.emit()
 
     @property
-    def last_check_time(self):
+    def last_check_time(self) -> datetime.datetime | None:
         """Get last check time.
 
         Returns:
-            datetime.datetime: last check time
+            datetime.datetime | None: last check time, None if not recorded yet
         """
         return self._last_check_time
 
@@ -129,7 +129,7 @@ class CardsTracker(QtCore.QObject):
         self.check_time_updated.emit()
 
     @property
-    def nice_last_checked_time(self):
+    def nice_last_checked_time(self) -> str:
         """Get nicely formatted last checked time.
 
         Returns:
