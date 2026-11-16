@@ -22,9 +22,10 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
             parent (QtWidgets.QWidget, optional): Parent widget. Defaults to None.
         """
         super().__init__(parent)
-        self.last_check_info_action = self.addAction("Last checked: Never")
+        self.last_check_info_action = self.addAction("Last check: Never")
         self.last_check_info_action.setEnabled(False)
-        self.check_for_updates_action = self.addAction("Check for New Cards")
+        self.check_for_updates_action = self.addAction("Check For New Cards")
+        self.addSeparator()
         self.history_action = self.addAction("History...")
         self.settings_action = self.addAction("Settings...")
         self.about_action = self.addAction("About...")
