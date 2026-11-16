@@ -76,7 +76,7 @@ class CheckHistoryDialog(QtWidgets.QDialog):
         self.refresh_requested.connect(self.on_refresh_requested)
         self._history_model.layoutChanged.connect(self.adjust_size_to_contents)
 
-    def application(self) -> "HazbinTrackerApplication":
+    def application(self) -> HazbinTrackerApplication:
         """Get the HazbinTrackerApplication instance."""
         app: HazbinTrackerApplication = QtWidgets.QApplication.instance()  # ty: ignore
         return app

@@ -140,7 +140,7 @@ class CardsTracker(QtCore.QObject):
         return self.last_check_time.strftime(self.NICE_TIME_FORMAT)
 
     @property
-    def application(self) -> "HazbinTrackerApplication":
+    def application(self) -> HazbinTrackerApplication:
         """Get the main application instance.
 
         Returns:
@@ -150,12 +150,12 @@ class CardsTracker(QtCore.QObject):
         return app
 
     @property
-    def config_values(self) -> "CardsTrackerConfigValues":
+    def config_values(self) -> CardsTrackerConfigValues:
         """Get the cards tracker config values."""
         return self.application.config.values.cards_tracker
 
     @property
-    def pushover_config_values(self) -> "PushoverConfigValues":
+    def pushover_config_values(self) -> PushoverConfigValues:
         """Get the Pushover config values."""
         return self.application.config.values.pushover
 

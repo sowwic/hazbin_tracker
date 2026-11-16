@@ -44,13 +44,13 @@ class SystemTrayContextMenu(QtWidgets.QMenu):
         self.exit_action.triggered.connect(QtWidgets.QApplication.quit)
 
     @property
-    def application(self) -> "HazbinTrackerApplication":
+    def application(self) -> HazbinTrackerApplication:
         """Get the HazbinTrackerApplication instance."""
         app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
         return app
 
     @property
-    def tracker(self) -> "CardsTracker":
+    def tracker(self) -> CardsTracker:
         """Get the CardsTracker instance from the application."""
         return self.application.cards_tracker
 
@@ -100,7 +100,7 @@ class HazbinTrackerSystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.messageClicked.connect(self.open_hazbin_website)
 
     @property
-    def tracker(self) -> "CardsTracker":
+    def tracker(self) -> CardsTracker:
         """Get the CardsTracker instance from the application."""
         app: HazbinTrackerApplication = QtWidgets.QApplication.instance()
         return app.cards_tracker
