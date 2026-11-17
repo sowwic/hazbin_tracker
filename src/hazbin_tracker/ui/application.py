@@ -2,6 +2,7 @@ import logging
 import pathlib
 import sys
 
+from json_config_qt.editor_dialog import ConfigEditorDialog
 from PySide6 import (
     QtCore,
     QtGui,
@@ -16,7 +17,6 @@ from hazbin_tracker.core.constants import (
 
 from ..core.cards_tracker import CardsTracker
 from ..core.config import HazbinAppConfig
-from ..ui.settings_dialog import SettingsDialog
 from ..version import __version__
 from .pyside_utils import center_dialog_on_screen
 from .tray import HazbinTrackerSystemTrayIcon
@@ -68,11 +68,23 @@ class HazbinTrackerApplication(QtWidgets.QApplication):
 
     @QtCore.Slot()
     def show_settings_dialog(self):
-        """Show the settings dialog."""
-        dialog = SettingsDialog(parent=self.main_window)
-        center_dialog_on_screen(dialog)
-        dialog.raise_()
-        dialog.exec()
+        """Show the config editor dialog, applying the settings once a layer is saved."""
+        dialog = ConfigEditorDialog.show_for(self.config, parent=self.main_window)
+        # show_for reuses an open dialog, connect only the first time.
+        if not dialog.property("saved_connected"):
+            dialog.saved.connect(self._on_config_saved)
+            dialog.setProperty("saved_connected", True)
+            center_dialog_on_screen(dialog)
+
+    @QtCore.Slot(str)
+    def _on_config_saved(self, layer_name: str):
+        """Let the app know the config changed.
+
+        Args:
+            layer_name (str): Name of the saved layer.
+        """
+        LOGGER.info("Config layer saved: %s", layer_name)
+        self.configChanged.emit()
 
     def lock_check(self):
         """Check for existing application instance using a lock file."""

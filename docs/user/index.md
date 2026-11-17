@@ -2,60 +2,62 @@
 
 ## Installation
 
-### Mac
+Only macOS is supported.
 
-1. Download latest release app image
-2. Add app image to your Applications folder
-3. Launch
+1. Download `HazbinTracker-<version>-macos-<arch>.zip` from the
+   [latest release](https://github.com/sowwic/hazbin_tracker/releases/latest).
+2. Unzip it and move `HazbinTracker.app` to your Applications folder.
+3. Launch it. If macOS refuses to open the app because it is from an unidentified
+   developer, right click it and choose **Open**.
 
-## UI Elements
+The app has no Dock icon and no window. It lives in the menu bar, and only one copy runs at
+a time.
 
-Once the app is launch you should see the following tray icon appear:
+## The tray menu
+
+Once the app is running this icon appears in the menu bar:
 
 ![Image](../images/mac_system_tray.png)
 
-Clicking on it will bring a context menu which allows you:
+Clicking it opens a menu with:
 
-* Run manual check for new cards
-* Check previous history of checks and their results
-* Open settings dialog to adjust app settings
-* Quit the application
+* **Last checked**: when the last check ran.
+* **Check for New Cards**: run a check now. A manual check tells you when it found nothing
+  or failed.
+* **History...**: the results of previous checks.
+* **Settings...**: the settings editor, see [Settings](settings.md).
+* **About...**
+* **Quit**
+
+Checks also run in the background, by default every 60 minutes. When new cards are found a
+notification is shown, and clicking it opens the Hazbin Hotel store in your browser.
+
+If 5 checks in a row fail (for example the store is blocking requests), the app shows a
+warning that new cards may be missed until the problem is resolved.
 
 ### Check History
 
-History dialog allows you to double check history of checks that were run in the background.
+The history dialog lists the checks that ran in the background, and what each of them found.
 
 ![Image](../images/check_history_dialog.png)
 
-### Settings
+## Where the files are
 
-Settings dialog allows to adjust various tracker settings.
+Everything lives in `~/.config/HazbinTracker` (or `$XDG_CONFIG_HOME/HazbinTracker` when that
+is set):
 
-![Image](../images/settings_dialog.png)
+| File | Content |
+| --- | --- |
+| `config.json` | Your settings, see [Settings](settings.md) |
+| `track_data.json` | The cards seen by the last check and the time it ran |
+| `check_history.json` | The check history shown by the history dialog |
+| `hazbin.log` | Application log, useful when reporting a problem |
 
-### Pushover notifcations
+Versions before the move to this location stored these in
+`~/Library/Application Support/HazbinTracker`. The files are moved to the new location the
+first time the app starts.
 
-In order to receive push notifications on your phone the following steps are necessary:
+## More
 
-![Image](../images/pushover_api_creation.png)
-
-1. Register new App on [pushover website](https://pushover.net/apps/build)
-2. This should provide you with APP KEY.
-3. Using settings dialog copy/paste your APP and USER from pushover website.
-4. Install `Pushover` app on your phone
-5. If everything is configured correctly you should receive push notification once new cards are released.
-
-> Note:
->
-> It's possible to test notifications by doing the following:
->
-> * Quit the app if it's running
-> * Fake last check date to much older one in `track_data.json`
-> * Launch the app and run cards check from tray context menu.
-
----
-
-> Pushover App:
->
-> * [App Store](https://apps.apple.com/gb/app/pushover-notifications/id506088175)
-> * [Play Store](https://play.google.com/store/apps/details?id=net.superblock.pushover&hl=en_GB&pli=1)
+* [Settings](settings.md)
+* [Pushover notifications](pushover.md)

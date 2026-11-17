@@ -1,0 +1,71 @@
+name: Build app
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "HazbinTracker.spec"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "VERSION"
+      - ".github/workflows/build_app.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build-app:
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install the project
+        run: uv sync --locked --dev
+
+      - name: Build the app
+        run: make bundle
+
+      - name: Archive the app
+        run: |
+          # ditto keeps the symlinks and permissions of the bundle, zip does not.
+          arch="$(uname -m)"
+          ditto -c -k --keepParent dist/HazbinTracker.app \
+            "dist/HazbinTracker-$(tr -d '\r\n' < VERSION)-macos-$arch.zip"
+
+      - name: Upload the archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: HazbinTracker-macOS
+          path: dist/HazbinTracker-*.zip
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build-app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the archive
+        uses: actions/download-artifact@v8
+        with:
+          path: archives
+          merge-multiple: true
+
+      - name: Attach the archive to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # The Release workflow creates the release from the same tag, wait for it.
+          for attempt in $(seq 1 30); do
+            gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 && break
+            sleep 20
+          done
+          gh release upload "$GITHUB_REF_NAME" archives/* --clobber

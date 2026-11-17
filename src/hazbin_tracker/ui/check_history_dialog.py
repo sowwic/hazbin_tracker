@@ -76,7 +76,7 @@ class CheckHistoryDialog(QtWidgets.QDialog):
         self.refresh_requested.connect(self.on_refresh_requested)
         self._history_model.layoutChanged.connect(self.adjust_size_to_contents)
 
-    def application(self) -> "HazbinTrackerApplication":
+    def application(self) -> HazbinTrackerApplication:
         """Get the HazbinTrackerApplication instance."""
         app: HazbinTrackerApplication = QtWidgets.QApplication.instance()  # ty: ignore
         return app
@@ -134,9 +134,7 @@ class CheckHistoryDialog(QtWidgets.QDialog):
         publish_details_tooltip = "No new cards published."
         latest_cards = self.application().cards_tracker.latest_published_cards
         if latest_cards:
-            publish_details_tooltip = "<br>".join(
-                [card["title"] for card in latest_cards]
-            )
+            publish_details_tooltip = "<br>".join([card.title for card in latest_cards])
         self._latest_publish_label.setToolTip(publish_details_tooltip)
 
     @QtCore.Slot()

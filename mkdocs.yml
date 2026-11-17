@@ -18,7 +18,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: ["src/hazbin_tracker"]
+          paths: ["src"]
           options:
             docstring_style: google
             show_signature: true
@@ -32,5 +32,12 @@ plugins:
   - autorefs
 
 nav:
-  - User Guide: user/index.md
-  - Developer Guide: dev/index.md
+  - Home: index.md
+  - User Guide:
+      - user/index.md
+      - Settings: user/settings.md
+      - Pushover notifications: user/pushover.md
+  - Developer Guide:
+      - dev/index.md
+      - Architecture: dev/architecture.md
+      - Building and releasing: dev/releasing.md
