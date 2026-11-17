@@ -1,42 +1,45 @@
 [project]
-name = "hazbin-tracker"
-version = "1.1.0"
+name = "sowwic-hazbin-tracker"
+version = "1.1.1"
 description = "Hazbin hotel cards release tracker"
 authors = [
-    {name = "Dmitrii Shevchenko",email = "47799401+sowwic@users.noreply.github.com"}
+  { name = "Dmitrii Shevchenko", email = "47799401+sowwic@users.noreply.github.com" },
 ]
 readme = "README.md"
-requires-python = ">=3.12"
-packages = [
-    {include = "hazbin_tracker", from="src"},
-]
+requires-python = ">=3.14"
+packages = [{ include = "hazbin_tracker", from = "src" }]
 dependencies = [
-    "pyside6 ",
-    "requests",
-    "platformdirs",
-    "curl-cffi>=0.17.0",
-    "json-config",
+  "pyside6 ",
+  "requests",
+  "platformdirs",
+  "curl-cffi>=0.17.0",
+  "sowwic-json-config>=1.0.7",
+  "sowwic-json-config-qt>=1.0.1",
+  "pydantic>=2.14.2",
 ]
 
 [dependency-groups]
 dev = [
-    "beautifulsoup4>=4.15.0",
-    "pytest",
-    "pytest-cov",
-    "pytest-mock",
-    "pytest-qt",
-    "ruff",
-    "pyinstaller",
-    "mkdocs",
-    "mkdocs-material",
-    "mkdocstrings[python]",
-    "mkdocs-autorefs",
-    "mkdocs-autoapi",
+  "beautifulsoup4>=4.15.0",
+  "pytest",
+  "pytest-cov",
+  "pytest-mock",
+  "pytest-qt",
+  "ruff",
+  "pyinstaller",
+  "mkdocs",
+  "mkdocs-material",
+  "mkdocstrings[python]",
+  "mkdocs-autorefs",
+  "mkdocs-autoapi",
 ]
 
 [build-system]
-requires = ["uv_build>=0.10.6,<0.11.0"]
+requires = ["uv_build>=0.12.0"]
 build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "hazbin_tracker"
 
 [tool.ruff]
 src = ["src"]
@@ -44,23 +47,10 @@ exclude = ["**/resources_rc.py"]
 
 show-fixes = true
 line-length = 89
-lint.select = [
-    "E",
-    "F",
-    "UP",
-    "D",
-]
-lint.ignore = [
-    "D413",
-    "D100",
-    "D104",
-    "D103",
-]
+lint.select = ["E", "F", "UP", "D"]
+lint.ignore = ["D203", "D213", "D413", "D100", "D104", "D103"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=hazbin_tracker --cov-report=term-missing"
 log_cli = true
 log_cli_level = "INFO"
-
-[tool.uv.sources]
-json-config = { git = "https://github.com/sowwic/json-config", tag="v1.0.6"}

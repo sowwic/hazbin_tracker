@@ -1,6 +1,13 @@
 hazbin-tracker
 ==============
 
+v 1.1.1
+-------
+* (#63) Update docs
+* (#63) Use json-config-qt for config dialog
+* (#63) Add pydantic based class for HazbinCard
+* (#57) (#58) (#59) (#61) (#65) Dependency updates
+
 v 1.1.0
 -------
 * (#55) Address check failing due to rate limits

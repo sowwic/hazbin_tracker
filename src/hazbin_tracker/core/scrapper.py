@@ -4,6 +4,7 @@ import time
 
 from curl_cffi import requests
 from curl_cffi.requests.exceptions import RequestException
+from pydantic import ValidationError
 
 from .constants import (
     DEFAULT_SORT_KEY,
@@ -17,6 +18,8 @@ from .constants import (
     PRODUCT_TITLE_PREFIX,
     PRODUCTS_REQUEST_LIMIT,
 )
+
+from .models import HazbinCard
 
 LOGGER = logging.getLogger(__name__)
 
@@ -61,17 +64,26 @@ class CardsScraper:
         """
         self.config = config or ScraperConfig()
 
-    def get_all_cards(self) -> list[dict]:
+    def get_all_cards(self) -> list[HazbinCard]:
         """Get all trading cards sorted by the configured sort key.
 
+        Products that are not valid cards (e.g. not published) are skipped.
+
         Returns:
-            list[dict]: A list of sorted cards dictionaries.
+            list[HazbinCard]: Cards, newest first by default.
 
         Raises:
             ScraperError: If the cards can't be fetched.
         """
-        cards = [self._clean_title(product) for product in self.fetch_products()]
-        return sorted(cards, key=lambda card: card[self.config.sort_key], reverse=True)
+        cards = []
+        for product in self.fetch_products():
+            try:
+                cards.append(HazbinCard.model_validate(self._clean_title(product)))
+            except ValidationError as exc:
+                LOGGER.warning(f"Skipping product {product.get('id')}: {exc}")
+        return sorted(
+            cards, key=lambda card: getattr(card, self.config.sort_key), reverse=True
+        )
 
     def fetch_products(self) -> list[dict]:
         """Fetch every product page of the cards collection.
@@ -152,10 +164,10 @@ class CardsScraper:
         return {**product, "title": title}
 
 
-def get_all_cards() -> list[dict]:
+def get_all_cards() -> list[HazbinCard]:
     """Get all trading cards using the default scraper configuration.
 
     Returns:
-        list[dict]: A list of sorted cards dictionaries.
+        list[HazbinCard]: Sorted cards.
     """
     return CardsScraper().get_all_cards()

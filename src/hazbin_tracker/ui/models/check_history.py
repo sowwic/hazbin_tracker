@@ -99,7 +99,12 @@ class CheckHistoryModel(QtCore.QAbstractTableModel):
             result_string += f"- {card_title}\n"
         return result_string.strip()
 
-    def headerData(self, section, orientation, role=QtCore.Qt.DisplayRole):
+    def headerData(
+        self,
+        section: int,
+        orientation: QtCore.Qt.Orientation,
+        role: int = QtCore.Qt.DisplayRole,
+    ) -> typing.Any:
         """Get header data for the model.
 
         Args:

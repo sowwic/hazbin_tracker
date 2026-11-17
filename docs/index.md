@@ -1,8 +1,10 @@
 # Hazbin Tracker
 
-A simple tracker for Hazbin Hotel trading cards.
+A tray app that watches the Hazbin Hotel store for new trading cards.
 
-Application is intended to run in the background, run periodic checks against Hazbin website
-and flag any new cards that were published since last check.
+It runs in the background, checks the store periodically and tells you when cards were
+published since the last check. By default it shows a desktop notification, and it can also
+send a push notification to your phone through [Pushover](https://pushover.net).
 
-By default it only sends desktop notifications but it's possible to connect to Pushover service to receive those any other device.
+* [User Guide](user/index.md): install, use and configure the app.
+* [Developer Guide](dev/index.md): set up the project, how it is built, tested and released.
