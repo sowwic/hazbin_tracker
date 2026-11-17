@@ -43,3 +43,7 @@ install:  ## Install the built application into the Applications directory
 	$(call banner, Installing $(APP_NAME) v$(VERSION) into $(APPLICATIONS_DIR)...)
 	@cp -R "$(APP_PATH)" "$(APPLICATIONS_DIR)/"
 	@printf "$(GREEN)Installation complete.$(RESET)\n"
+
+.PHONY: pushover-check
+pushover-check:  ## Validate the Pushover keys of the config without sending a notification
+	@uv run python scripts/check_pushover.py

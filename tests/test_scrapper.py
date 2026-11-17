@@ -59,8 +59,8 @@ def test_get_all_cards_paginates_cleans_and_sorts(mocker, sleeps):
     cards = scraper.get_all_cards()
 
     assert get.call_count == 2
-    assert [card["id"] for card in cards] == [3, 2, 1]
-    assert cards[0]["title"] == "Card 3"
+    assert [card.id for card in cards] == [3, 2, 1]
+    assert cards[0].title == "Card 3"
     sleeps.assert_called_once_with(scraper.config.page_delay)
 
 
@@ -110,3 +110,10 @@ def test_network_error_is_retried_then_raised(mocker, sleeps):
     with pytest.raises(ScraperError):
         scraper.get_all_cards()
     assert get.call_count == 2
+
+
+def test_unpublished_products_are_skipped(mocker, sleeps):
+    """A product without a publish date is not a card."""
+    products = _products(1, 1) + [{"id": 9, "title": "Draft", "published_at": None}]
+    scraper, _ = _scraper(mocker, [FakeResponse(products), FakeResponse([])])
+    assert [card.id for card in scraper.get_all_cards()] == [1]

@@ -33,6 +33,7 @@ every target.
 | `make bundle`, `make app` | Build `dist/HazbinTracker.app` with PyInstaller |
 | `make install` | Copy the built app to `/Applications` |
 | `make iconset` | Regenerate the `.icns` icon from `hazbin.png` |
+| `make pushover-check` | Validate the Pushover keys of your config, no notification is sent |
 | `make mkdocs` | Serve these docs |
 
 Run a single test with `uv run pytest tests/test_tracker.py::test_name`. On a headless machine

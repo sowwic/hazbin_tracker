@@ -15,6 +15,7 @@ dependencies = [
   "curl-cffi>=0.17.0",
   "sowwic-json-config>=1.0.7",
   "sowwic-json-config-qt>=1.0.1",
+  "pydantic>=2.14.2",
 ]
 
 [dependency-groups]
